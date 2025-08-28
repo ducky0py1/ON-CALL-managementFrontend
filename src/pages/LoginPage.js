@@ -129,7 +129,7 @@ function LoginPage() {
 
           {/* Lien mot de passe oublié */}
           <div className="mt-6 text-center">
-            <a href="#" className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors duration-200">
+            <a href=" " className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors duration-200">
               Mot de passe oublié ?
             </a>
           </div>
