@@ -1,28 +1,29 @@
-// src/App.js
+// src/App.js - Layout protégé avec sidebar (mis à jour)
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
 function App() {
   const navigate = useNavigate();
 
-  // Vérification de l'authentification
+  // Vérification de l'authentification pour les routes protégées
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
-      // Si pas de token, on redirige vers la page de connexion
-      navigate('/login');
+      // Si pas de token, redirection vers la page d'accueil (pas directement login)
+      navigate('/');
     }
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    navigate('/login');
+    // Redirection vers la page d'accueil après déconnexion
+    navigate('/');
   };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
-      {/* Barre latérale de navigation OCP */}
+      {/* Barre latérale de navigation OCP - inchangée */}
       <aside className="w-72 bg-gradient-to-b from-green-800 to-green-900 text-white shadow-2xl relative overflow-hidden">
         {/* Motifs décoratifs en arrière-plan */}
         <div className="absolute inset-0 opacity-10">
@@ -74,9 +75,19 @@ function App() {
                   <span className="font-medium">Agents</span>
                 </Link>
               </li>
-              {/* Ajoutez d'autres liens ici (Agents, etc.) */}
             </ul>
           </nav>
+
+          {/* Lien de retour vers l'accueil - NOUVEAU */}
+          <div className="mb-6">
+            <Link 
+              to="/"
+              className="flex items-center px-4 py-2 text-green-200 hover:text-white hover:bg-green-700 hover:bg-opacity-30 rounded-lg transition-all duration-200 text-sm"
+            >
+              <div className="mr-3">←</div>
+              <span>Retour à l'accueil</span>
+            </Link>
+          </div>
 
           {/* Section d'informations système */}
           <div className="bg-green-700 bg-opacity-30 rounded-lg p-4 mb-6 border border-green-600">
@@ -148,7 +159,7 @@ function App() {
 
         {/* Zone de contenu avec padding */}
         <div className="p-8">
-          <Outlet /> {/* C'est ici que les pages (Dashboard, Services) s'afficheront */}
+          <Outlet /> {/* Les pages (Dashboard, Services, Agents) s'affichent ici */}
         </div>
 
         {/* Footer discret */}

@@ -1,3 +1,4 @@
+//src/pages/LoginPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. On importe le 'hook' de navigation
 import { login } from '../services/api'; // On importe la fonction 'login' de notre service API
