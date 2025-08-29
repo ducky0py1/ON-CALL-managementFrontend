@@ -47,6 +47,16 @@ export const deleteService = (id) => {
 export const updateService = (id, serviceData) => {
   return apiClient.put(`/services/${id}`, serviceData);
 };
+export const createAgent = (agentData) => {
+  return apiClient.post('/agents', agentData);
+};
 
+export const updateAgent = (id, agentData) => {
+  return apiClient.put(`/agents/${id}`, agentData);
+};
+
+export const deleteAgent = (id) => {
+  return apiClient.delete(`/agents/${id}`);
+};
 
 export default apiClient;
