@@ -58,5 +58,7 @@ export const updateAgent = (id, agentData) => {
 export const deleteAgent = (id) => {
   return apiClient.delete(`/agents/${id}`);
 };
-
+export const getSecretaries = () => {
+  return apiClient.get('/users/secretaries');
+};
 export default apiClient;
