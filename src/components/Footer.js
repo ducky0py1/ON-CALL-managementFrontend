@@ -2,24 +2,114 @@
 import React from 'react';
 import './styles/Footer.css';
 
-// Icon components (replace with actual imported icons if available)
-const MapPin = () => <span>📍</span>;
-const Phone = () => <span>📞</span>;
-const Mail = () => <span>📧</span>;
-const Clock = () => <span>🕐</span>;
-const Shield = () => <span>🛡️</span>;
-const Users = () => <span>👥</span>;
-const Linkedin = () => <span>💼</span>;
-const ExternalLink = () => <span>🔗</span>;
-const CheckCircle = () => <span>✅</span>;
-const AlertCircle = () => <span>⚠️</span>;
+// Import icon images (add these imports when you upload the icons)
+import mapPinIcon from './images/ico/location.png';
+import phoneIcon from './images/ico/telephone.png';
+import mailIcon from './images/ico/mail.png';
+import clockIcon from './images/ico/checked.png';
+import shieldIcon from './images/ico/security.png';
+import usersIcon from './images/ico/usr.png';
+import linkedinIcon from './images/ico/location.png';
+import externalLinkIcon from './images/ico/mail.png';
+import checkCircleIcon from './images/ico/checked.png';
+import alertCircleIcon from './images/ico/security.png';
+
+const MapPin = ({ className, style }) => (
+  <img 
+    src={mapPinIcon} 
+    alt="Map Pin" 
+    className={className}
+    style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const Phone = ({ className, style }) => (
+  <img 
+    src={phoneIcon} 
+    alt="Phone" 
+    className={className}
+    style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const Mail = ({ className, style }) => (
+  <img 
+    src={mailIcon} 
+    alt="Mail" 
+    className={className}
+    style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const Clock = ({ className, style }) => (
+  <img 
+    src={clockIcon} 
+    alt="Clock" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const Shield = ({ className, style }) => (
+  <img 
+    src={shieldIcon} 
+    alt="Shield" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const Users = ({ className, style }) => (
+  <img 
+    src={usersIcon} 
+    alt="Users" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const Linkedin = ({ className, style }) => (
+  <img 
+    src={linkedinIcon} 
+    alt="LinkedIn" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const ExternalLink = ({ className, style }) => (
+  <img 
+    src={externalLinkIcon} 
+    alt="External Link" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const CheckCircle = ({ className, style }) => (
+  <img 
+    src={checkCircleIcon} 
+    alt="Check Circle" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
+
+const AlertCircle = ({ className, style }) => (
+  <img 
+    src={alertCircleIcon} 
+    alt="Alert Circle" 
+    className={className}
+    style={{ width: '1rem', height: '1rem', objectFit: 'contain', ...style }}
+  />
+);
 
 function Footer() {
   // Get current date and time
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleString('fr-FR', {
     day: '2-digit',
-    month: '2-digit',
+    month: '2-digit', 
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
@@ -57,34 +147,34 @@ function Footer() {
 
   return (
     <footer className="footer">
-
+      
       {/* Main Footer Content */}
       <div className="footer-container">
         <div className="footer-grid">
-
+          
           {/* Column 1: À Propos OCP */}
           <div className="footer-column">
             <h3 className="footer-column-title">À Propos OCP</h3>
-
+            
             <p className="footer-about">
-              Office Chérifien des Phosphates, leader mondial des solutions phosphatées
+              Office Chérifien des Phosphates, leader mondial des solutions phosphatées 
               depuis 1920 au service de l'agriculture mondiale.
             </p>
-
+            
             <div className="footer-contact-info">
               <div className="contact-item">
                 <MapPin className="contact-icon" />
                 <div className="contact-text">
-                  <div>Hay Erraha, El Jadida</div>
+                  <div>OCP Group Ben Geurir</div>
                   <div>Maroc</div>
                 </div>
               </div>
-
+              
               <div className="contact-item">
                 <Phone className="contact-icon" />
-                <div className="contact-text">+212 5XX XX XX XX</div>
+                <div className="contact-text">+212 532 24 34 00</div>
               </div>
-
+              
               <div className="contact-item">
                 <Mail className="contact-icon" />
                 <div className="contact-text">contact@ocpgroup.ma</div>
@@ -95,7 +185,7 @@ function Footer() {
           {/* Column 2: Liens Rapides */}
           <div className="footer-column">
             <h3 className="footer-column-title">Liens Rapides</h3>
-
+            
             <div className="links-section">
               <div className="link-group">
                 <h4 className="link-group-title nav-links">Navigation</h4>
@@ -124,7 +214,7 @@ function Footer() {
           {/* Column 3: Support & Contact */}
           <div className="footer-column">
             <h3 className="footer-column-title">Support & Contact</h3>
-
+            
             <div className="support-section">
               <div className="support-group">
                 <h4 className="support-group-title technical-support">Support Technique</h4>
@@ -135,7 +225,7 @@ function Footer() {
                   </div>
                   <div className="support-detail-item">
                     <Phone className="support-icon" />
-                    <span>+212 5XX XX XX XX</span>
+                    <span>+212 533 44 34 00</span>
                     <span className="support-badge">24h/7j</span>
                   </div>
                   <div className="support-detail-item">
@@ -159,18 +249,18 @@ function Footer() {
           {/* Column 4: Informations Système */}
           <div className="footer-column">
             <h3 className="footer-column-title">Informations Système</h3>
-
+            
             <div className="system-section">
               <div className="status-group">
                 <h4 className="status-group-title">Status en Temps Réel</h4>
-
+                
                 <div className="status-card">
                   <div className="status-left">
                     <CheckCircle className="status-icon" />
                     <span className="status-text">Statut serveur</span>
                   </div>
                 </div>
-
+                
                 <div className="status-details">
                   <div className="status-detail-row">
                     <span>Dernière mise à jour:</span>
@@ -209,7 +299,7 @@ function Footer() {
       {/* Footer Bottom Bar */}
       <div className="footer-bottom">
         <div className="footer-bottom-content">
-
+          
           {/* Left Side */}
           <div className="footer-left">
             <p className="footer-copyright">
@@ -224,14 +314,14 @@ function Footer() {
           <div className="footer-right">
             <div className="footer-meta">
               <span className="footer-version">Version système: v2.1.4</span>
-
+              
               <div className="footer-links">
                 <a href="#">Conditions d'utilisation</a>
                 <span className="footer-divider">|</span>
                 <a href="#">Politique de confidentialité</a>
               </div>
             </div>
-
+            
             {/* Social Links */}
             <div className="footer-social">
               <a href="#" className="social-link linkedin-link">

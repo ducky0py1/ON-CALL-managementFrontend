@@ -2,15 +2,48 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './styles/RoiSection.css';
 
-// Icon components (replace with actual imported icons if available)
-const TrendingUp = () => <span>📈</span>;
-const Clock = () => <span>🕐</span>;
-const Users = () => <span>👥</span>;
-const CheckCircle = () => <span>✅</span>;
-const DollarSign = () => <span>💰</span>;
-const Target = () => <span>🎯</span>;
-const Award = () => <span>🏆</span>;
-const Zap = () => <span>⚡</span>;
+// Import icon images
+import trendingUpIcon from './images/ico/prog.png';
+import clockIcon from './images/ico/setting.png';
+import usersIcon from './images/ico/grop.png';
+import checkIcon from './images/ico/check.png';
+
+// Icon components using imported images
+const TrendingUp = ({ style, className }) => (
+  <img 
+    src={trendingUpIcon} 
+    alt="Trending Up" 
+    style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
+const Clock = ({ style, className }) => (
+  <img 
+    src={clockIcon} 
+    alt="Clock" 
+    style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
+const Users = ({ style, className }) => (
+  <img 
+    src={usersIcon} 
+    alt="Users" 
+    style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
+const CheckCircle = ({ style, className }) => (
+  <img 
+    src={checkIcon} 
+    alt="Check Circle" 
+    style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
 
 function RoiSection() {
   const [visibleElements, setVisibleElements] = useState({});

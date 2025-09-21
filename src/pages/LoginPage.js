@@ -1,156 +1,330 @@
-//src/pages/LoginPage.js
+// src/components/LoginPage.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. On importe le 'hook' de navigation
-import { login } from '../services/api'; // On importe la fonction 'login' de notre service API
+import './styles/LoginPage.css';
+
+// Import icon images (add these when you upload the icons)
+import ocpLogoIcon from './images/icons/ocp-logo.png';
+import userIcon from './images/icons/user.png';
+import lockIcon from './images/icons/lock.png';
+import eyeIcon from './images/icons/eye.png';
+import eyeOffIcon from './images/icons/eye-off.png';
+import microsoftIcon from './images/icons/microsoft.png';
+import googleIcon from './images/icons/google.png';
+import checkIcon from './images/icons/check.png';
+import alertIcon from './images/icons/alert-triangle.png';
+import xIcon from './images/icons/x-circle.png';
+
+// Icon components
+const OCPLogo = ({ className, style }) => (
+  <img 
+    src={ocpLogoIcon} 
+    alt="OCP Logo" 
+    className={className}
+    style={style}
+  />
+);
+
+const UserIcon = ({ className, style }) => (
+  <img 
+    src={userIcon} 
+    alt="User" 
+    className={className}
+    style={style}
+  />
+);
+
+const LockIcon = ({ className, style }) => (
+  <img 
+    src={lockIcon} 
+    alt="Lock" 
+    className={className}
+    style={style}
+  />
+);
+
+const EyeIcon = ({ className, style }) => (
+  <img 
+    src={eyeIcon} 
+    alt="Show Password" 
+    className={className}
+    style={style}
+  />
+);
+
+const EyeOffIcon = ({ className, style }) => (
+  <img 
+    src={eyeOffIcon} 
+    alt="Hide Password" 
+    className={className}
+    style={style}
+  />
+);
+
+const MicrosoftIcon = ({ className, style }) => (
+  <img 
+    src={microsoftIcon} 
+    alt="Microsoft" 
+    className={className}
+    style={style}
+  />
+);
+
+const GoogleIcon = ({ className, style }) => (
+  <img 
+    src={googleIcon} 
+    alt="Google" 
+    className={className}
+    style={style}
+  />
+);
+
+const CheckIcon = ({ className, style }) => (
+  <img 
+    src={checkIcon} 
+    alt="Success" 
+    className={className}
+    style={style}
+  />
+);
+
+const AlertIcon = ({ className, style }) => (
+  <img 
+    src={alertIcon} 
+    alt="Warning" 
+    className={className}
+    style={style}
+  />
+);
+
+const XIcon = ({ className, style }) => (
+  <img 
+    src={xIcon} 
+    alt="Error" 
+    className={className}
+    style={style}
+  />
+);
 
 function LoginPage() {
-  const navigate = useNavigate(); // 2. On initialise le 'hook' pour pouvoir l'utiliser
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
-  // États pour stocker les informations du formulaire
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
 
-  // Fonction appelée lors de la soumission du formulaire
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    setError('');
-    setLoading(true);
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setStatusMessage(null);
 
     try {
-      // Appel à l'API
-      const response = await login({ email, password });
-
-      // Stockage des informations
-      const { access_token, user } = response.data;
-      localStorage.setItem('authToken', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // 3. LA REDIRECTION : on remplace l'ancienne alerte par ceci
-      // On navigue vers la page du tableau de bord
-      navigate('/dashboard');
-
-    } catch (err) {
-      // Gestion des erreurs
-      if (err.response && err.response.status === 401) {
-        setError(err.response.data.message || 'Email ou mot de passe incorrect.');
+      // Simulate login API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate success/error based on form data
+      if (formData.email && formData.password.length >= 6) {
+        setStatusMessage({
+          type: 'success',
+          message: 'Connexion réussie! Redirection en cours...'
+        });
+        
+        // Redirect after success message
+        setTimeout(() => {
+          // window.location.href = '/dashboard';
+          console.log('Redirecting to dashboard...');
+        }, 1500);
       } else {
-        setError('Une erreur est survenue. Veuillez vérifier votre connexion et réessayer.');
+        setStatusMessage({
+          type: 'error',
+          message: 'Email ou mot de passe incorrect'
+        });
       }
+    } catch (error) {
+      setStatusMessage({
+        type: 'error',
+        message: 'Erreur de connexion. Veuillez réessayer.'
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Le JSX (HTML) pour afficher le formulaire avec le style OCP
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center p-4 relative">
-      {/* Motifs décoratifs OCP en arrière-plan */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-32 h-32 border-2 border-green-200 rounded-full opacity-20"></div>
-        <div className="absolute top-32 right-32 w-24 h-24 border-2 border-green-200 transform rotate-45 opacity-20"></div>
-        <div className="absolute bottom-32 left-32 w-28 h-28 border-2 border-green-200 rounded-full opacity-20"></div>
-        <div className="absolute bottom-20 right-20 w-20 h-20 border-2 border-green-200 transform rotate-45 opacity-20"></div>
-      </div>
+  // Handle alternative login methods
+  const handleAltLogin = (provider) => {
+    setStatusMessage({
+      type: 'warning',
+      message: `Connexion avec ${provider} temporairement indisponible`
+    });
+  };
 
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
-        {/* Header OCP */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6 text-center relative">
-          {/* Logo OCP */}
-          <div className="inline-block mb-3">
-            <div className="bg-white rounded-full p-3 shadow-lg">
-              <div className="text-xl font-bold text-green-600">OCP</div>
-            </div>
+  // Render status message
+  const renderStatusMessage = () => {
+    if (!statusMessage) return null;
+
+    const icons = {
+      success: CheckIcon,
+      error: XIcon,
+      warning: AlertIcon
+    };
+
+    const IconComponent = icons[statusMessage.type];
+
+    return (
+      <div className={`status-message status-${statusMessage.type}`}>
+        <IconComponent className="status-icon" />
+        {statusMessage.message}
+      </div>
+    );
+  };
+
+  return (
+    <div className="login-page">
+      <div className="login-container">
+        
+        {/* Header Section */}
+        <div className="login-header">
+          <div className="login-logo">
+            <OCPLogo />
           </div>
-          <h2 className="text-xl font-bold text-white mb-1">Office Chérifien des Phosphates</h2>
-          <p className="text-green-100 text-sm">Portail de Connexion</p>
-          
-          {/* Ornements décoratifs */}
-          <div className="absolute top-3 right-3 w-6 h-6 border border-green-300 rounded-full opacity-40"></div>
-          <div className="absolute bottom-3 left-3 w-4 h-4 border border-green-300 transform rotate-45 opacity-40"></div>
+          <h1 className="login-title">Connexion OCP</h1>
+          <p className="login-subtitle">
+            Accédez à votre système de gestion des astreintes
+          </p>
         </div>
 
-        <div className="p-8">
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-r mb-6">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2 flex-shrink-0"></div>
-                <p className="text-sm">{error}</p>
-              </div>
-            </div>
-          )}
+        {/* Status Message */}
+        {renderStatusMessage()}
 
-          <form onSubmit={handleLogin}>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="email">
-                Adresse Email
-              </label>
+        {/* Login Form */}
+        <form className="login-form" onSubmit={handleSubmit}>
+          
+          {/* Email Field */}
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              Adresse Email
+            </label>
+            <div className="input-container">
+              <UserIcon className="input-icon" />
               <input
-                id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700 leading-tight focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
-                placeholder="prenom.nom@ocpgroup.ma"
+                id="email"
+                name="email"
+                className="form-input"
+                placeholder="votre.email@ocpgroup.ma"
+                value={formData.email}
+                onChange={handleInputChange}
                 required
               />
             </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="password">
-                Mot de passe
-              </label>
+          </div>
+
+          {/* Password Field */}
+          <div className="form-group">
+            <label htmlFor="password" className="form-label">
+              Mot de Passe
+            </label>
+            <div className="input-container">
+              <LockIcon className="input-icon" />
               <input
+                type={showPassword ? 'text' : 'password'}
                 id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700 leading-tight focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
-                placeholder="******************"
+                name="password"
+                className="form-input"
+                placeholder="Entrez votre mot de passe"
+                value={formData.password}
+                onChange={handleInputChange}
                 required
               />
-            </div>
-            <div className="flex items-center justify-between">
               <button
-                type="submit"
-                disabled={loading}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg w-full focus:outline-none focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] disabled:transform-none shadow-lg"
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Connexion en cours...
-                  </div>
-                ) : (
-                  'Se connecter'
-                )}
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
-          </form>
+          </div>
 
-          {/* Lien mot de passe oublié */}
-          <div className="mt-6 text-center">
-            <a href=" " className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors duration-200">
-              Mot de passe oublié ?
+          {/* Form Options */}
+          <div className="form-options">
+            <label className="remember-me">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                className="remember-checkbox"
+                checked={formData.rememberMe}
+                onChange={handleInputChange}
+              />
+              <span className="remember-label">Se souvenir de moi</span>
+            </label>
+            <a href="#forgot" className="forgot-password">
+              Mot de passe oublié?
             </a>
           </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            className="login-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Connexion en cours...' : 'Se Connecter'}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="login-divider">
+          <div className="divider-line"></div>
+          <span className="divider-text">ou continuer avec</span>
+          <div className="divider-line"></div>
         </div>
 
-        {/* Footer avec informations OCP */}
-        <div className="bg-gray-50 px-8 py-4 border-t">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-              <span>Connexion sécurisée</span>
+        {/* Alternative Login Methods */}
+        <div className="alt-login">
+          <button
+            type="button"
+            className="alt-login-button"
+            onClick={() => handleAltLogin('Microsoft')}
+          >
+            <div className="alt-login-icon">
+              <MicrosoftIcon />
             </div>
-            <div>OCP Group © 2025</div>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-gray-400">
-              Leader mondial des solutions phosphatées
-            </p>
-          </div>
+            Connexion Microsoft 365
+          </button>
+          
+          <button
+            type="button"
+            className="alt-login-button"
+            onClick={() => handleAltLogin('Google')}
+          >
+            <div className="alt-login-icon">
+              <GoogleIcon />
+            </div>
+            Connexion Google Workspace
+          </button>
         </div>
+
+        {/* Footer */}
+        <div className="login-footer">
+          <p className="signup-link">
+            Première connexion? <a href="#help">Guide de démarrage</a>
+          </p>
+        </div>
+
       </div>
     </div>
   );

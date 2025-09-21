@@ -2,11 +2,47 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './styles/BenefitsSection.css';
 
-// Icon components (replace with actual imported icons if available)
-const Zap = () => <span>⚡</span>;
-const Shield = () => <span>🛡️</span>;
-const Heart = () => <span>❤️</span>;
-const DollarSign = () => <span>💰</span>;
+import ZapIcon from './images/ico/fla.png';
+import ShieldIcon from './images/ico/shi.png';
+import HeartIcon from './images/ico/sati.png';
+import DollarSignIcon from './images/ico/cos.png';
+
+const Zap = ({ style, className }) => (
+  <img 
+    src={ZapIcon} 
+    alt="Zap" 
+    style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
+const Shield = ({ style, className }) => (
+  <img 
+    src={ShieldIcon} 
+    alt="Shield" 
+    style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
+const Heart = ({ style, className }) => (
+  <img 
+    src={HeartIcon} 
+    alt="Hea" 
+    style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
+const DollarSign = ({ style, className }) => (
+  <img 
+    src={DollarSignIcon} 
+    alt="Dollar Sign" 
+    style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', ...style }} 
+    className={className}
+  />
+);
+
 
 function BenefitsSection() {
   const [visibleElements, setVisibleElements] = useState({});
@@ -99,9 +135,7 @@ function BenefitsSection() {
           data-element-id="header"
           ref={addToRefs}
         >
-          <div className="benefits-badge">
-            Avantages Business
-          </div>
+          
           <h2 className="benefits-title">
             Pourquoi Choisir Notre Solution
           </h2>

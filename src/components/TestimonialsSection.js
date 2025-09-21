@@ -2,9 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './styles/TestimonialsSection.css';
 
+import ABImage from './images/AB.jpg';
+import MKImage from './images/MK.jpg';
+import YHImage from './images/YH.jpg';
+
 // Icon components (replace with actual imported icons if available)
 const Star = () => <span>⭐</span>;
-const Quote = () => <span>💬</span>;
+const Quote = () => <span></span>;
 const ArrowRight = () => <span>→</span>;
 
 function TestimonialsSection() {
@@ -21,6 +25,7 @@ function TestimonialsSection() {
         role: "Responsable RH",
         department: "Division Mining",
         initials: "A.B",
+        img: ABImage,
         color: "#F29F05"
       },
       rating: 5
@@ -33,6 +38,7 @@ function TestimonialsSection() {
         role: "Chef de Service IT",
         department: "Direction Centrale",
         initials: "M.E",
+        img: MKImage,
         color: "#0B43F5"
       },
       rating: 5
@@ -43,8 +49,9 @@ function TestimonialsSection() {
       author: {
         name: "Youssef Hajji",
         role: "Technicien Senior",
-        department: "Site de Khouribga",
+        department: "Site de OCP Ben Geurir",
         initials: "Y.H",
+        img: YHImage,
         color: "#24DC61"
       },
       rating: 5
@@ -169,9 +176,29 @@ function TestimonialsSection() {
                 <div className="testimonial-author">
                   <div 
                     className="author-avatar"
-                    style={{ backgroundColor: testimonial.author.color }}
+                    style={{ 
+                      backgroundColor: testimonial.author.color,
+                      backgroundImage: `url(${testimonial.author.img})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      border: `2px solid ${testimonial.author.color}`
+                    }}
                   >
-                    {testimonial.author.initials}
+                    {/* Fallback to initials if image fails to load */}
+                    <img 
+                      src={testimonial.author.img} 
+                      alt={testimonial.author.name}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%',
+                        objectFit: 'cover'
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = testimonial.author.initials;
+                      }}
+                    />
                   </div>
                   <div className="author-info">
                     <p className="author-name">{testimonial.author.name}</p>

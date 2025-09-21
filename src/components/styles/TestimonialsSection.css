@@ -199,7 +199,7 @@
   line-height: 1.7;
   position: relative;
   font-size: 1.125rem;
-  padding-left: 1rem;
+  /* padding-left: 1rem; */
 }
 
 .testimonial-quote::before {
@@ -324,7 +324,7 @@
 .stat-number {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--ocp-blue), var(--ocp-green));
+  background: linear-gradient(190deg, #09d5d5ff, #19df2dff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -363,7 +363,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, var(--ocp-blue), var(--ocp-green));
+  background: linear-gradient(135deg, var(--blue-primary), var(--green-secondary));
   color: var(--white);
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
