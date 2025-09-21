@@ -1,42 +1,159 @@
-import React from 'react';
-// Importing icons that match the business benefits.
-import { FaClock, FaClipboardCheck, FaHeart, FaEuroSign } from 'react-icons/fa';
+// src/components/BenefitsSection.js
+import React, { useState, useEffect, useRef } from 'react';
+import './styles/BenefitsSection.css';
 
-export default function BenefitsSection() {
-  // Storing benefits in an array to easily map over them.
+// Icon components (replace with actual imported icons if available)
+const Zap = () => <span>⚡</span>;
+const Shield = () => <span>🛡️</span>;
+const Heart = () => <span>❤️</span>;
+const DollarSign = () => <span>💰</span>;
+
+function BenefitsSection() {
+  const [visibleElements, setVisibleElements] = useState({});
+  const elementsRef = useRef([]);
+
+  // Main benefits data
   const benefits = [
-    { icon: FaClock, title: "Efficacité Opérationnelle", details: "Réduction 60% temps de planification", color: "blue" },
-    { icon: FaClipboardCheck, title: "Conformité & Traçabilité", details: "Respect des réglementations du travail", color: "green" },
-    { icon: FaHeart, title: "Satisfaction Employés", details: "Équité dans les rotations", color: "yellow" },
-    { icon: FaEuroSign, title: "Optimisation Coûts", details: "Meilleure allocation des ressources", color: "red" },
+    {
+      id: 'efficiency',
+      icon: Zap,
+      title: "Efficacité Opérationnelle",
+      description: "Réduction 60% temps de planification",
+      details: "Automatisation des tâches répétitives",
+      color: "#F29F05",
+      stats: "60% de gain de temps"
+    },
+    {
+      id: 'compliance',
+      icon: Shield,
+      title: "Conformité & Traçabilité", 
+      description: "Respect des réglementations du travail",
+      details: "Historique complet des assignments",
+      color: "#0B43F5",
+      stats: "100% de conformité"
+    },
+    {
+      id: 'satisfaction',
+      icon: Heart,
+      title: "Satisfaction Employés",
+      description: "Équité dans les rotations",
+      details: "Visibilité sur les plannings futurs",
+      color: "#24DC61",
+      stats: "+25% satisfaction"
+    },
+    {
+      id: 'cost',
+      icon: DollarSign,
+      title: "Optimisation Coûts",
+      description: "Réduction des heures supplémentaires",
+      details: "Meilleure allocation des ressources",
+      color: "#099FFB",
+      stats: "15% économies"
+    }
   ];
 
+  // Scroll animation setup
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const elementId = entry.target.getAttribute('data-element-id');
+            setVisibleElements(prev => ({
+              ...prev,
+              [elementId]: true
+            }));
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    elementsRef.current.forEach((element) => {
+      if (element) observer.observe(element);
+    });
+
+    return () => {
+      elementsRef.current.forEach((element) => {
+        if (element) observer.unobserve(element);
+      });
+    };
+  }, []);
+
+  const addToRefs = (el) => {
+    if (el && !elementsRef.current.includes(el)) {
+      elementsRef.current.push(el);
+    }
+  };
+
   return (
-    // The section has a white background to contrast with the previous light gray one.
-    <section className="bg-white py-24">
-      <div className="container mx-auto px-8">
-
-        {/* ===== Section Title ===== */}
-        <div className="text-center mb-16">
-          <span className="text-green-600 font-semibold">Avantages Business</span>
-          <h2 className="text-4xl font-bold text-gray-800 mt-2">Pourquoi Choisir Notre Solution</h2>
-          <p className="text-lg text-gray-500 mt-4 max-w-3xl mx-auto">Des bénéfices mesurables et durables pour optimiser la gestion de vos équipes OCP.</p>
+    <section className="benefits-section">
+      <div className="benefits-container">
+        
+        {/* Section Header */}
+        <div 
+          className={`benefits-header ${visibleElements.header ? 'animate-in' : ''}`}
+          data-element-id="header"
+          ref={addToRefs}
+        >
+          <div className="benefits-badge">
+            Avantages Business
+          </div>
+          <h2 className="benefits-title">
+            Pourquoi Choisir Notre Solution
+          </h2>
+          <p className="benefits-description">
+            Des bénéfices mesurables et durables pour optimiser la gestion de vos équipes OCP
+          </p>
         </div>
 
-        {/* ===== Benefits Grid ===== */}
-        {/* 'sm:grid-cols-2 lg:grid-cols-4' creates a responsive grid. It's 1 column on mobile, 2 on small screens, and 4 on large screens. 'gap-8' defines the space between cards. */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* We map over the 'benefits' array to render each card. */}
-          {benefits.map(benefit => (
-            <div key={benefit.title} className="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-2xl transition-shadow text-center">
-              {/* The icon is rendered dynamically. */}
-              <benefit.icon className={`h-12 w-12 text-green-600 mx-auto mb-6`} />
-              <h3 className="text-xl font-bold text-gray-900">{benefit.title}</h3>
-              <p className="text-gray-600 mt-3">{benefit.details}</p>
-            </div>
-          ))}
+        {/* Main Benefits Grid */}
+        <div className="benefits-grid">
+          {benefits.map((benefit) => {
+            const IconComponent = benefit.icon;
+            return (
+              <div 
+                key={benefit.id}
+                className={`benefit-card ${visibleElements[benefit.id] ? 'animate-in' : ''}`}
+                data-element-id={benefit.id}
+                ref={addToRefs}
+              >
+                <div className="benefit-card-header">
+                  <div className="benefit-header-top">
+                    <div 
+                      className="benefit-icon"
+                      style={{ backgroundColor: `${benefit.color}15` }}
+                    >
+                      <IconComponent style={{ color: benefit.color }} />
+                    </div>
+                    <div 
+                      className="benefit-stats"
+                      style={{ 
+                        backgroundColor: `${benefit.color}15`,
+                        color: benefit.color,
+                        border: `1px solid ${benefit.color}30`
+                      }}
+                    >
+                      {benefit.stats}
+                    </div>
+                  </div>
+                  <h3 className="benefit-title">{benefit.title}</h3>
+                </div>
+                <div className="benefit-card-content">
+                  <p className="benefit-main-description">{benefit.description}</p>
+                  <p className="benefit-details">{benefit.details}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
+
       </div>
     </section>
   );
 }
+
+export default BenefitsSection;

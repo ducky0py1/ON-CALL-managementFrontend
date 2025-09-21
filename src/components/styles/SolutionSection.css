@@ -58,7 +58,7 @@
   transform: translateY(0);
 }
 
-.solution-badge {
+/* .solution-badge {
   display: inline-block;
   background: var(--ocp-blue);
   color: var(--white);
@@ -68,6 +68,23 @@
   font-weight: 600;
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-md);
+} */
+.solution-badge {
+  display: inline-block;
+  background: rgba(36, 220, 97, 0.1);
+  color: var(--benefits-satisfaction);
+  border: 1px solid rgba(36, 220, 97, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.solution-badge:hover {
+  background: rgba(36, 220, 97, 0.15);
+  transform: translateY(-2px);
 }
 
 .solution-title {
