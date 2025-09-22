@@ -1,4 +1,6 @@
 import Header from '../components/Header';
+import { Link } from 'react-router-dom';
+
 import AboutSection from '../components/AboutSection';
 import SolutionSection from '../components/SolutionSection';
 // import FeaturesSection from '../components/FeaturesSection'; // <-- 1. Importer le composant manquant
@@ -6,6 +8,7 @@ import BenefitsSection from '../components/BenefitsSection';
 import RoiSection from '../components/RoiSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import Footer from '../components/Footer';
+
 
 function HomePage() {
   return (

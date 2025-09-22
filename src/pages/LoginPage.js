@@ -1,119 +1,64 @@
-// src/components/LoginPage.js
-import React, { useState } from 'react';
-import './styles/LoginPage.css';
+// src/pages/LoginPage.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import '../components/styles/LoginPage.css';
+import { login } from '../services/api';
 
-// Import icon images (add these when you upload the icons)
-import ocpLogoIcon from './images/icons/ocp-logo.png';
-import userIcon from './images/icons/user.png';
-import lockIcon from './images/icons/lock.png';
-import eyeIcon from './images/icons/eye.png';
-import eyeOffIcon from './images/icons/eye-off.png';
-import microsoftIcon from './images/icons/microsoft.png';
-import googleIcon from './images/icons/google.png';
-import checkIcon from './images/icons/check.png';
-import alertIcon from './images/icons/alert-triangle.png';
-import xIcon from './images/icons/x-circle.png';
+// Import icons - using existing ones as placeholders
+import ocpLogoIcon from '../components/images/ocp_logo.png';
+import userIcon from '../components/images/ico/usrs.png';
+import lockIcon from '../components/images/ico/chk.png';
+import eyeIcon from '../components/images/ico/chk.png';
+import eyeOffIcon from '../components/images/ico/chk.png';
+import checkIcon from '../components/images/ico/chk.png';
+import alertIcon from '../components/images/ico/chk.png';
+import xIcon from '../components/images/ico/chk.png';
+import shieldIcon from '../components/images/ico/chk.png';
+import usersManagementIcon from '../components/images/ico/usrs.png';
+import arrowLeftIcon from '../components/images/ico/chk.png';
+import loadingIcon from '../components/images/ico/chk.png';
 
-// Icon components
-const OCPLogo = ({ className, style }) => (
-  <img 
-    src={ocpLogoIcon} 
-    alt="OCP Logo" 
-    className={className}
-    style={style}
-  />
-);
-
-const UserIcon = ({ className, style }) => (
-  <img 
-    src={userIcon} 
-    alt="User" 
-    className={className}
-    style={style}
-  />
-);
-
-const LockIcon = ({ className, style }) => (
-  <img 
-    src={lockIcon} 
-    alt="Lock" 
-    className={className}
-    style={style}
-  />
-);
-
-const EyeIcon = ({ className, style }) => (
-  <img 
-    src={eyeIcon} 
-    alt="Show Password" 
-    className={className}
-    style={style}
-  />
-);
-
-const EyeOffIcon = ({ className, style }) => (
-  <img 
-    src={eyeOffIcon} 
-    alt="Hide Password" 
-    className={className}
-    style={style}
-  />
-);
-
-const MicrosoftIcon = ({ className, style }) => (
-  <img 
-    src={microsoftIcon} 
-    alt="Microsoft" 
-    className={className}
-    style={style}
-  />
-);
-
-const GoogleIcon = ({ className, style }) => (
-  <img 
-    src={googleIcon} 
-    alt="Google" 
-    className={className}
-    style={style}
-  />
-);
-
-const CheckIcon = ({ className, style }) => (
-  <img 
-    src={checkIcon} 
-    alt="Success" 
-    className={className}
-    style={style}
-  />
-);
-
-const AlertIcon = ({ className, style }) => (
-  <img 
-    src={alertIcon} 
-    alt="Warning" 
-    className={className}
-    style={style}
-  />
-);
-
-const XIcon = ({ className, style }) => (
-  <img 
-    src={xIcon} 
-    alt="Error" 
-    className={className}
-    style={style}
-  />
-);
+// Background image - you can replace with your actual background
+const backgroundImage = "https://images.unsplash.com/photo-1718386046338-6259e822aa4f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBiYWNrZ3JvdW5kfGVufDF8fHx8MTc1ODU1OTQ2Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
 function LoginPage() {
+  const navigate = useNavigate();
+  
+  // Form states
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
+  
+  // UI states
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState(null);
+  const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Validation states
+  const [emailValid, setEmailValid] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  // Email validation
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setEmailValid(emailRegex.test(formData.email));
+  }, [formData.email]);
+
+  // Password strength calculation
+  useEffect(() => {
+    let strength = 0;
+    const password = formData.password;
+    
+    if (password.length >= 8) strength += 25;
+    if (/[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 25;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+    
+    setPasswordStrength(strength);
+  }, [formData.password]);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -127,204 +72,326 @@ function LoginPage() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setIsLoading(true);
-    setStatusMessage(null);
+
+    // Validation
+    if (!formData.email || !formData.password) {
+      setError('Veuillez remplir tous les champs');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!emailValid) {
+      setError('Veuillez entrer une adresse email valide');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // Simulate login API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate success/error based on form data
-      if (formData.email && formData.password.length >= 6) {
-        setStatusMessage({
-          type: 'success',
-          message: 'Connexion réussie! Redirection en cours...'
-        });
-        
-        // Redirect after success message
-        setTimeout(() => {
-          // window.location.href = '/dashboard';
-          console.log('Redirecting to dashboard...');
-        }, 1500);
-      } else {
-        setStatusMessage({
-          type: 'error',
-          message: 'Email ou mot de passe incorrect'
-        });
-      }
-    } catch (error) {
-      setStatusMessage({
-        type: 'error',
-        message: 'Erreur de connexion. Veuillez réessayer.'
+      // Call your login API
+      const response = await login({
+        email: formData.email,
+        password: formData.password
       });
+      
+      // Store the token and user data
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Store remember me preference
+      if (formData.rememberMe) {
+        localStorage.setItem('rememberLogin', 'true');
+      }
+      
+      setShowSuccess(true);
+      
+      // Redirect to dashboard after success
+      setTimeout(() => {
+        navigate('/app/dashboard');
+      }, 1500);
+      
+    } catch (error) {
+      setError(error.response?.data?.message || 'Email ou mot de passe incorrect');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle alternative login methods
-  const handleAltLogin = (provider) => {
-    setStatusMessage({
-      type: 'warning',
-      message: `Connexion avec ${provider} temporairement indisponible`
-    });
+  // Handle back to home
+  const handleBackToHome = () => {
+    navigate('/');
   };
 
-  // Render status message
-  const renderStatusMessage = () => {
-    if (!statusMessage) return null;
-
-    const icons = {
-      success: CheckIcon,
-      error: XIcon,
-      warning: AlertIcon
-    };
-
-    const IconComponent = icons[statusMessage.type];
-
-    return (
-      <div className={`status-message status-${statusMessage.type}`}>
-        <IconComponent className="status-icon" />
-        {statusMessage.message}
-      </div>
-    );
+  // Get password strength text and class
+  const getPasswordStrengthInfo = () => {
+    if (passwordStrength <= 25) return { text: 'Faible', class: 'weak' };
+    if (passwordStrength <= 50) return { text: 'Moyen', class: 'medium' };
+    if (passwordStrength <= 75) return { text: 'Fort', class: 'strong' };
+    return { text: 'Très fort', class: 'very-strong' };
   };
+
+  // Generate background particles
+  const renderParticles = () => {
+    return Array.from({ length: 10 }, (_, i) => (
+      <div key={i} className="particle" />
+    ));
+  };
+
+  const passwordInfo = getPasswordStrengthInfo();
 
   return (
     <div className="login-page">
-      <div className="login-container">
+      
+      {/* Background Image */}
+      <div className="login-background">
+        <img src={backgroundImage} alt="Modern industrial facility background" />
+      </div>
+      
+      {/* Overlay Gradients */}
+      <div className="login-overlay"></div>
+      <div className="login-overlay-secondary"></div>
+      
+      {/* Animated Background Particles */}
+      <div className="background-particles">
+        {renderParticles()}
+      </div>
+      
+      {/* Geometric Pattern Overlay */}
+      <div className="geometric-pattern"></div>
+
+      {/* Main Content */}
+      <div className="login-content">
         
-        {/* Header Section */}
-        <div className="login-header">
-          <div className="login-logo">
-            <OCPLogo />
-          </div>
-          <h1 className="login-title">Connexion OCP</h1>
-          <p className="login-subtitle">
-            Accédez à votre système de gestion des astreintes
-          </p>
-        </div>
-
-        {/* Status Message */}
-        {renderStatusMessage()}
-
-        {/* Login Form */}
-        <form className="login-form" onSubmit={handleSubmit}>
-          
-          {/* Email Field */}
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              Adresse Email
-            </label>
-            <div className="input-container">
-              <UserIcon className="input-icon" />
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="form-input"
-                placeholder="votre.email@ocpgroup.ma"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
+        {/* Left Side - Branding */}
+        <div className="login-branding">
+          <div>
+            <div className="brand-header">
+              <div className="brand-logo">
+                <img src={ocpLogoIcon} alt="OCP Logo" />
+              </div>
+              <div className="brand-text">
+                <h1>OCP</h1>
+                <p>Gestion Astreinte</p>
+              </div>
+            </div>
+            
+            <div className="brand-description">
+              <h2>
+                Système de Gestion<br />
+                <span className="highlight">des Astreintes</span>
+              </h2>
+              <p>
+                Plateforme sécurisée pour la gestion des équipes d'astreinte 
+                et la planification des interventions au sein du groupe OCP.
+              </p>
             </div>
           </div>
 
-          {/* Password Field */}
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              Mot de Passe
-            </label>
-            <div className="input-container">
-              <LockIcon className="input-icon" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                className="form-input"
-                placeholder="Entrez votre mot de passe"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
+          {/* Features List */}
+          <div className="features-list">
+            <div className="feature-item">
+              <div className="feature-icon security">
+                <img src={shieldIcon} alt="Security" />
+              </div>
+              <div className="feature-content">
+                <h3>Sécurité Renforcée</h3>
+                <p>Authentification multi-facteurs</p>
+              </div>
+            </div>
+            
+            <div className="feature-item">
+              <div className="feature-icon management">
+                <img src={usersManagementIcon} alt="Management" />
+              </div>
+              <div className="feature-content">
+                <h3>Gestion Centralisée</h3>
+                <p>Interface unifiée pour tous les sites</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Login Form */}
+        <div className="login-form-container">
+          <div className="login-card">
+            
+            {/* Success Overlay */}
+            {showSuccess && (
+              <div className="success-overlay active">
+                <div className="success-icon">
+                  <img src={checkIcon} alt="Success" />
+                </div>
+              </div>
+            )}
+            
+            {/* Card Header */}
+            <div className="login-header">
+              <div className="login-logo">
+                <img src={ocpLogoIcon} alt="OCP Logo" />
+              </div>
+              <h1 className="login-title">Connexion</h1>
+              <p className="login-subtitle">
+                Accédez à votre espace de gestion des astreintes
+              </p>
+            </div>
+
+            {/* Form Content */}
+            <div className="login-form-content">
+              <form onSubmit={handleSubmit} className="form-container">
+                
+                {/* Email Field */}
+                <div className="form-group">
+                  <label className="form-label">
+                    <span>Adresse email</span>
+                    {formData.email && (
+                      <div className={`validation-icon ${formData.email ? 'show' : ''} ${emailValid ? 'valid' : 'invalid'}`}>
+                        <img 
+                          src={emailValid ? checkIcon : xIcon} 
+                          alt={emailValid ? 'Valid' : 'Invalid'} 
+                        />
+                      </div>
+                    )}
+                  </label>
+                  <div className="input-wrapper">
+                    <input
+                      type="email"
+                      name="email"
+                      className={`form-input ${formData.email ? (emailValid ? 'valid' : 'invalid') : ''}`}
+                      placeholder="nom.prenom@ocp.ma"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div className="form-group">
+                  <label className="form-label">Mot de passe</label>
+                  <div className="input-wrapper">
+                    <div className="password-wrapper">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        className="form-input"
+                        placeholder="Entrez votre mot de passe"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                      >
+                        <img 
+                          src={showPassword ? eyeOffIcon : eyeIcon} 
+                          alt={showPassword ? 'Hide' : 'Show'} 
+                        />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Password Strength Indicator */}
+                  {formData.password && (
+                    <div className={`password-strength ${formData.password ? 'show' : ''}`}>
+                      <div className="strength-header">
+                        <span className="strength-label">Force du mot de passe:</span>
+                        <span className={`strength-value ${passwordInfo.class}`}>
+                          {passwordInfo.text}
+                        </span>
+                      </div>
+                      <div className="strength-bar">
+                        <div 
+                          className={`strength-progress ${passwordInfo.class}`}
+                          style={{ width: `${passwordStrength}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Remember Me Checkbox */}
+                <div className="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    name="rememberMe"
+                    className="checkbox-input"
+                    checked={formData.rememberMe}
+                    onChange={handleInputChange}
+                  />
+                  <label htmlFor="rememberMe" className="checkbox-label">
+                    Se souvenir de moi
+                  </label>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="error-message">
+                    <img src={alertIcon} alt="Error" className="error-icon" />
+                    {error}
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="submit-button"
+                  disabled={isLoading || !emailValid || !formData.password}
+                >
+                  <div className="button-shimmer"></div>
+                  <div className="button-content">
+                    {isLoading && <img src={loadingIcon} alt="Loading" className="loading-icon" />}
+                    <span>{isLoading ? 'Connexion...' : 'Se connecter'}</span>
+                  </div>
+                </button>
+              </form>
+
+              {/* Footer Links */}
+              <div className="login-footer">
+                <div className="footer-links">
+                  <a href="#forgot" className="forgot-password">
+                    Mot de passe oublié ?
+                  </a>
+                  <div className="support-text">
+                    Besoin d'aide ? Contactez le{" "}
+                    <span className="support-link">support IT</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Form Options */}
-          <div className="form-options">
-            <label className="remember-me">
-              <input
-                type="checkbox"
-                name="rememberMe"
-                className="remember-checkbox"
-                checked={formData.rememberMe}
-                onChange={handleInputChange}
-              />
-              <span className="remember-label">Se souvenir de moi</span>
-            </label>
-            <a href="#forgot" className="forgot-password">
-              Mot de passe oublié?
-            </a>
+          {/* Back to Homepage */}
+          <div className="back-to-home">
+            <button onClick={handleBackToHome} className="back-button">
+              <img src={arrowLeftIcon} alt="Back" className="back-icon" />
+              <span>Retour à l'accueil</span>
+            </button>
           </div>
-
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="login-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Connexion en cours...' : 'Se Connecter'}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="login-divider">
-          <div className="divider-line"></div>
-          <span className="divider-text">ou continuer avec</span>
-          <div className="divider-line"></div>
         </div>
+      </div>
 
-        {/* Alternative Login Methods */}
-        <div className="alt-login">
-          <button
-            type="button"
-            className="alt-login-button"
-            onClick={() => handleAltLogin('Microsoft')}
-          >
-            <div className="alt-login-icon">
-              <MicrosoftIcon />
-            </div>
-            Connexion Microsoft 365
-          </button>
-          
-          <button
-            type="button"
-            className="alt-login-button"
-            onClick={() => handleAltLogin('Google')}
-          >
-            <div className="alt-login-icon">
-              <GoogleIcon />
-            </div>
-            Connexion Google Workspace
-          </button>
+      {/* Mobile Logo */}
+      <div className="mobile-logo">
+        <div className="mobile-brand">
+          <div className="mobile-brand-logo">
+            <img src={ocpLogoIcon} alt="OCP Logo" />
+          </div>
+          <div className="mobile-brand-text">
+            <h1>OCP</h1>
+            <p>Gestion Astreinte</p>
+          </div>
         </div>
-
-        {/* Footer */}
-        <div className="login-footer">
-          <p className="signup-link">
-            Première connexion? <a href="#help">Guide de démarrage</a>
-          </p>
-        </div>
-
       </div>
     </div>
   );

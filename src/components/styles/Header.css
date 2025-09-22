@@ -423,7 +423,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right:-161px;
+  /* margin-right:-161px; */
   overflow:hidden;
 }
 
