@@ -1,6 +1,7 @@
-// src/components/Header.js
+// src/components/Header.js - UPDATED with React Router Links
 import React, { useState } from 'react';
-import './styles/Header.css'; // Import the CSS file
+import { Link, useNavigate } from 'react-router-dom';
+import './styles/Header.css';
 import ocpLogo from './images/ocp_logo.png';
 import graphImage from './images/graph.png';
 import empIcon from './images/ico/emp.png';
@@ -8,39 +9,40 @@ import serIcon from './images/ico/ser.png';
 import disIcon from './images/ico/dis.png';
 
 /**
- * HEADER COMPONENT - Matching exact screenshot design
- * 
- * File location: src/components/Header.js
- * CSS file: src/components/Header.css
- * 
- * Features:
- * - OCP logo with proper sizing
- * - Navigation menu with active state
- * - Auth buttons with gradients
- * - Hero section with gradient text
- * - Background image with overlay
- * - Stats section with icons
- * - Clickable graph image with modal popup
- * - Responsive design
- * 
- * Color Palette:
- * - Green: #24DC61, #01c542ff
- * - Blue: #0B43F5, #3ca7ffff, #76bffaff  
- * - Orange: #F29F05
+ * HEADER COMPONENT - Updated with React Router navigation
  */
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Handle navigation to login page
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  // Handle navigation to protected system
+  const handleSystemAccess = () => {
+    // Check if user is already logged in
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // User is logged in, go to dashboard
+      navigate('/app/dashboard');
+    } else {
+      // User not logged in, go to login page
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="page-wrapper">
-      
+
       {/* HEADER NAVIGATION */}
       <header className="header">
         <div className="container">
           <div className="header-content">
-            
+
             {/* Logo section */}
             <div className="logo-section">
               <div className="logo-circle">
@@ -51,22 +53,33 @@ const Header = () => {
               </div>
             </div>
 
-            {/* Navigation menu */}
+            {/* Navigation menu - Updated with anchor links for same-page sections */}
             <nav className="nav-menu">
-              <a href="../HomePage.js" className="nav-link nav-link-active">Accueil</a>
-              <a href="#../AboutSection.js" className="nav-link">À Propos</a>
-              <a href="#fonctionnalites" className="nav-link">Fonctionnalités</a>
+              <a href="#hero" className="nav-link nav-link-active">Accueil</a>
+              <a href="#about" className="nav-link">À Propos</a>
+              <a href="#solution" className="nav-link">Solutions</a>
+              <a href="#benefits" className="nav-link">Avantages</a>
               <a href="#contact" className="nav-link">Contact</a>
             </nav>
 
-            {/* Auth buttons */}
+            {/* Auth buttons - Updated with React Router navigation */}
             <div className="auth-buttons">
-              <button className="btn-connexion">Connexion</button>
-              <button className="btn-primary">Accéder au Système</button>
+              <button
+                className="btn-connexion"
+                onClick={handleLoginClick}
+              >
+                Connexion
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleSystemAccess}
+              >
+                Accéder au Système
+              </button>
             </div>
 
             {/* Mobile menu button */}
-            <button 
+            <button
               className="mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -79,14 +92,14 @@ const Header = () => {
       </header>
 
       {/* HERO SECTION */}
-      <section className="hero-section">
-        
+      <section id="hero" className="hero-section">
+
         {/* Background with overlay */}
         <div className="hero-background"></div>
         <div className="hero-overlay"></div>
 
         <div className="container">
-          
+
           {/* System status badge */}
           <div className="status-badge">
             <div className="status-dot"></div>
@@ -94,17 +107,17 @@ const Header = () => {
           </div>
 
           <div className="hero-content">
-            
+
             {/* Left side - Text content */}
             <div className="hero-text">
-              
+
               {/* Main headline */}
               <h1 className="hero-title">
                 Optimisez la<br />
                 Gestion de Vos<br />
                 <span className="gradient-text">Équipes OCP</span>
               </h1>
-              
+
               {/* Subtitle */}
               <p className="hero-subtitle">
                 Solution complète de planification d'astreinte, gestion des services et coordination du personnel pour l'Office Chérifien des Phosphates
@@ -134,20 +147,29 @@ const Header = () => {
                 </div>
               </div>
 
-              {/* CTA Buttons */}
+              {/* CTA Buttons - Updated with React Router navigation */}
               <div className="cta-buttons">
-                <button className="btn-primary-large">Démarrer Maintenant</button>
-                <button className="btn-secondary-large">Connexion</button>
+                <button
+                  className="btn-primary-large"
+                  onClick={handleSystemAccess}
+                >
+                  Démarrer Maintenant
+                </button>
+                <button
+                  className="btn-secondary-large"
+                  onClick={handleLoginClick}
+                >
+                  Connexion
+                </button>
               </div>
             </div>
 
             {/* Right side - Image container with modal functionality */}
             <div className="hero-image">
-              <div 
+              <div
                 className="image-container"
                 onClick={() => setIsImageModalOpen(true)}
               >
-                {/* <div className="ocp-badge">OCP</div> */}
                 <div className="graph-placeholder">
                   <div className="graph-content">
                     <img src={graphImage} alt="Graph visualization" />
@@ -186,11 +208,11 @@ const Header = () => {
 
       {/* IMAGE MODAL POPUP */}
       {isImageModalOpen && (
-        <div 
+        <div
           className="image-modal-overlay"
           onClick={() => setIsImageModalOpen(false)}
         >
-          <div 
+          <div
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
           >
@@ -200,9 +222,9 @@ const Header = () => {
             >
               ×
             </button>
-            <img 
-              src={graphImage} 
-              alt="Graph visualization - Full size" 
+            <img
+              src={graphImage}
+              alt="Graph visualization - Full size"
             />
           </div>
         </div>

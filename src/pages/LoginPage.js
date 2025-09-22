@@ -1,4 +1,4 @@
-// src/pages/LoginPage.js
+// src/pages/LoginPage.js - Updated navigation routes
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../components/styles/LoginPage.css';
@@ -18,11 +18,20 @@ import usersManagementIcon from '../components/images/ico/usrs.png';
 import arrowLeftIcon from '../components/images/ico/chk.png';
 import loadingIcon from '../components/images/ico/chk.png';
 
-// Background image - you can replace with your actual background
+// Background image
 const backgroundImage = "https://images.unsplash.com/photo-1718386046338-6259e822aa4f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBiYWNrZ3JvdW5kfGVufDF8fHx8MTc1ODU1OTQ2Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
 function LoginPage() {
   const navigate = useNavigate();
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // User is already logged in, redirect to dashboard
+      navigate('/app/dashboard');
+    }
+  }, [navigate]);
   
   // Form states
   const [formData, setFormData] = useState({
@@ -112,7 +121,7 @@ function LoginPage() {
       
       setShowSuccess(true);
       
-      // Redirect to dashboard after success
+      // Redirect to dashboard after success - UPDATED ROUTE
       setTimeout(() => {
         navigate('/app/dashboard');
       }, 1500);
@@ -124,7 +133,7 @@ function LoginPage() {
     }
   };
 
-  // Handle back to home
+  // Handle back to home - UPDATED ROUTE
   const handleBackToHome = () => {
     navigate('/');
   };
