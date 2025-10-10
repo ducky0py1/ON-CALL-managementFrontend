@@ -9,7 +9,7 @@ const apiClient = axios.create({
   }
 });
 
-// --- NOUVEAU CODE ---
+
 // On ajoute un intercepteur pour chaque requête
 apiClient.interceptors.request.use(
   (config) => {
@@ -25,7 +25,7 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-// --- FIN DU NOUVEAU CODE ---
+
 
 export const login = (credentials) => {
   return apiClient.post('/login', credentials);
@@ -61,4 +61,15 @@ export const deleteAgent = (id) => {
 export const getSecretaries = () => {
   return apiClient.get('/users/secretaries');
 };
+
+
+export const getPublicPeriodes = () => {
+  // We use the base apiClient, which is fine since these routes are public
+  return apiClient.get('/public/periodes-astreinte');
+};
+
+export const getCurrentWeekAstreintes = () => {
+  return apiClient.get('/public/astreintes-semaine');
+};
+
 export default apiClient;

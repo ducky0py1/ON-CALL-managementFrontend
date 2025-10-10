@@ -1,67 +1,147 @@
-// src/pages/DashboardPage.jsx
-function DashboardPage() {
+// Fichier: src/pages/DashboardPage.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// Import all the child components that make up the dashboard
+import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
+import { DashboardMainContent } from '../components/dashboard/DashboardMainContent';
+import { OnCallModal } from '../components/dashboard/OnCallModal';
+import { DeleteConfirmDialog } from '../components/dashboard/DeleteConfirmationDialog';
+
+// Mock data organized by service, as you provided.
+// This data will be used to power the entire dashboard.
+const mockDataByService = {
+  "Service Production": [
+    { id: "prod-1", description: "Astreinte Production - Semaine 43", service: "Service Production", startDate: "2024-10-21", endDate: "2024-10-25", startTime: "06:00", endTime: "18:00", status: "active", priority: "critical", assignedAgents: ["Youssef Mahi", "Aicha Rahimi"], type: "maintenance" },
+    { id: "prod-2", description: "Maintenance Préventive", service: "Service Production", startDate: "2024-10-28", endDate: "2024-11-01", startTime: "08:00", endTime: "17:00", status: "pending", priority: "normal", assignedAgents: ["Mohamed Alami"], type: "maintenance" }
+  ],
+  "Service Électrique": [
+    { id: "elec-1", description: "Urgence Électrique", service: "Service Électrique", startDate: "2024-10-22", endDate: "2024-10-28", startTime: "00:00", endTime: "23:59", status: "active", priority: "critical", assignedAgents: ["Khalid Ouali"], type: "emergency" }
+  ],
+};
+const mockData = Object.values(mockDataByService).flat();
+
+// This is the main "smart" component for the entire authenticated application.
+export function DashboardPage() {
+  const navigate = useNavigate();
+
+  // --- State Management ---
+  const [periods, setPeriods] = useState(mockData);
+  const [currentView, setCurrentView] = useState("overview"); // Default view is 'overview'
+  const [selectedService, setSelectedService] = useState(null);
+  
+  // State for the Create/Edit modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState(null);
+  
+  // State for the Delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [periodToDelete, setPeriodToDelete] = useState(null);
+
+  // --- Data Fetching (to be connected to the API later) ---
+  // useEffect(() => {
+  //   getPeriodes().then(response => setPeriods(response.data));
+  // }, []);
+
+  // --- Handlers (The functions that control the application) ---
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/');
+  };
+  
+  const handleCreatePeriod = () => {
+    setEditingPeriod(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditPeriod = (period) => {
+    setEditingPeriod(period);
+    setIsModalOpen(true);
+  };
+  
+  const handleDeletePeriod = (periodId) => {
+    setPeriodToDelete(periodId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSavePeriod = (formData) => {
+    if (editingPeriod) { // Editing existing period
+      setPeriods(periods.map(p => p.id === editingPeriod.id ? { ...p, ...formData } : p));
+      // You would call updatePeriode(editingPeriod.id, formData) here
+    } else { // Creating new period
+      const newPeriod = { id: Date.now().toString(), status: 'pending', ...formData };
+      setPeriods([newPeriod, ...periods]);
+      // You would call createPeriode(formData) here
+    }
+    setIsModalOpen(false);
+  };
+
+  const confirmDelete = () => {
+    setPeriods(periods.filter(p => p.id !== periodToDelete));
+    // You would call deletePeriode(periodToDelete) here
+    setIsDeleteModalOpen(false);
+    setPeriodToDelete(null);
+  };
+  
+  // --- Derived Data (Calculations based on state) ---
+  const stats = {
+    total: periods.length,
+    active: periods.filter(p => p.status === 'active').length,
+    services: new Set(periods.map(p => p.service)).size,
+    thisMonth: periods.filter(p => new Date(p.startDate).getMonth() === new Date().getMonth()).length,
+    critical: periods.filter(p => p.priority === 'critical').length,
+    agents: new Set(periods.flatMap(p => p.assignedAgents)).size
+  };
+  
+  // Filter periods based on the selected service in the sidebar
+  const displayedPeriods = selectedService ? mockDataByService[selectedService] || [] : periods;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
-      {/* Header avec branding OCP */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo et titre */}
-            <div className="flex items-center">
-              <div className="bg-white rounded-full p-2 shadow-md mr-4">
-                <div className="text-lg font-bold text-green-600">OCP</div>
-              </div>
-              <div className="text-white">
-                <h1 className="text-xl font-semibold">Office Chérifien des Phosphates</h1>
-                <p className="text-green-100 text-sm">Système de Gestion</p>
-              </div>
-            </div>
-            
-            {/* Indicateurs de statut */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-green-100 text-sm">
-                <div className="w-2 h-2 bg-green-300 rounded-full mr-2 animate-pulse"></div>
-                <span>Système opérationnel</span>
-              </div>
-              <div className="text-green-100 text-sm">
-                {new Date().toLocaleDateString('fr-MA')}
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50/20">
+      <div className="flex">
+        
+        {/* The Sidebar receives the current state and the functions to change it */}
+        <DashboardSidebar 
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          onLogout={handleLogout}
+          stats={stats}
+          selectedService={selectedService}
+          onServiceChange={setSelectedService}
+          periodsByService={mockDataByService}
+        />
+
+        {/* The Main Content area receives the data and functions it needs to display the current view */}
+        <div className="flex-1 ml-64">
+          <DashboardMainContent
+            currentView={currentView}
+            periods={displayedPeriods} // Pass the correctly filtered periods
+            stats={stats}
+            onCreatePeriod={handleCreatePeriod}
+            onEditPeriod={handleEditPeriod}
+            onDeletePeriod={handleDeletePeriod}
+            // Pass other props for other views
+            periodsByService={mockDataByService}
+            selectedService={selectedService}
+          />
         </div>
       </div>
 
-    
-        {/* Footer informatif */}
-        <div className="mt-12 bg-white rounded-xl shadow-lg p-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
-                <div className="text-white font-bold text-sm">OCP</div>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800">Office Chérifien des Phosphates</h3>
-            </div>
-            <p className="text-gray-600 text-sm mb-2">
-              Leader mondial dans l'industrie des phosphates et des fertilisants
-            </p>
-            <div className="flex items-center justify-center space-x-6 text-xs text-gray-500">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                <span>Production: Active</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                <span>Export: Opérationnel</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
-                <span>Système: En ligne</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      {/* Modals are rendered here at the top level so they can appear over everything */}
+      <OnCallModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        period={editingPeriod}
+        onSave={handleSavePeriod}
+      />
+      <DeleteConfirmDialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Supprimer la période d'astreinte"
+        description="Cette action est irréversible et supprimera définitivement la période."
+      />
+    </div>
   );
 }
 
