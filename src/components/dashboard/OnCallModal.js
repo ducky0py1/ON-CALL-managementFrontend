@@ -30,7 +30,7 @@ export function OnCallModal({ isOpen, onClose, period, onSave, services, agents 
         });
         // setSelectedAgents([]);
       }
-      // setErrors({});
+      setErrors({});
     }
   }, [period, isOpen]);
 
@@ -46,39 +46,19 @@ export function OnCallModal({ isOpen, onClose, period, onSave, services, agents 
     return Object.keys(newErrors).length === 0;
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //     // We send the ID of the service, not the name
-  //     // const dataToSave = { ...formData, service_id: formData.service, assignedAgents: selectedAgents };
-  //     // delete dataToSave.service; // Clean up the object
-  //     console.log("Submitting form data:", formData);
-  //     onSave(formData);
-    
-  // };
-
   const handleSubmit = (e) => {
   e.preventDefault();
 
-  const convertTo24Hour = (timeStr) => {
+  const normalizeTime = (timeStr) => {
     if (!timeStr) return "";
-    // Handle values like "09:00" or "09:00 AM"
-    let [time, modifier] = timeStr.split(" ");
-    let [hours, minutes] = time.split(":");
-    hours = parseInt(hours, 10);
-
-    if (modifier) {
-      // Convert from 12-hour to 24-hour format
-      if (modifier.toUpperCase() === "PM" && hours < 12) hours += 12;
-      if (modifier.toUpperCase() === "AM" && hours === 12) hours = 0;
-    }
-
-    return `${hours.toString().padStart(2, "0")}:${minutes}:00`;
+    const [hours, minutes] = timeStr.split(":");
+    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`; // always 24h
   };
 
   const dataToSave = {
     ...formData,
-    heure_debut: convertTo24Hour(formData.heure_debut),
-    heure_fin: convertTo24Hour(formData.heure_fin),
+    heure_debut: normalizeTime(formData.heure_debut),
+    heure_fin: normalizeTime(formData.heure_fin),
   };
 
   console.log("Submitting formatted data:", dataToSave);

@@ -1,6 +1,7 @@
 // Fichier: src/components/dashboard/DashboardSidebar.js
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   LayoutDashboard, RotateCcw, BarChart3, Settings, LogOut, Bell,
   UserCheck, FileText, Plus, Search, Activity, Clock, AlertTriangle, Users
@@ -13,13 +14,19 @@ export function DashboardSidebar({
   onLogout, 
   stats 
 }) {
+   // 3. Filter the list based on the user's role //added another fix
+  // const visibleNavItems = allNavItems.filter(item => !item.adminOnly || isAdmin);
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin'; 
+
 
   // An array defining all the main navigation items for cleaner code.
   const mainNavigationItems = [
     { id: "overview", label: "Dashboard", icon: LayoutDashboard, description: "Vue d'ensemble générale" },
     { id: "planning", label: "Planning", icon: Clock, description: "Calendrier et planification" },
     { id: "agents", label: "Agents", icon: UserCheck, count: stats.agents, description: "Gestion du personnel" },
-    { id: "periods", label: "Périodes d'astreinte", icon: RotateCcw, count: stats.total, description: "Gérer les périodes" }
+    { id: "periods", label: "Périodes d'astreinte", icon: RotateCcw, count: stats.total, description: "Gérer les périodes" },
+    { id: "services", label: "Services", icon: Users, count: stats.services, adminOnly: true },
   ];
 
   // An array for the analysis section navigation.
@@ -29,6 +36,8 @@ export function DashboardSidebar({
     { id: "notifications", label: "Notifications", icon: Bell, count: stats.critical, description: "Alertes et notifications" }
   ];
 
+ 
+  
   // A reusable button component for the navigation items to avoid repeating code.
   const NavButton = ({ item }) => {
     const Icon = item.icon;

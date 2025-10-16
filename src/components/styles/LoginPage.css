@@ -35,7 +35,7 @@
   justify-content: center;
   padding: 1rem;
   overflow: hidden;
-  background: var(--login-gradient);
+  /* background: var(--login-gradient); */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
@@ -44,6 +44,8 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* background-image: url('../src/components/images/zellige.jpg');  */
+
 }
 
 .login-page .login-background img {

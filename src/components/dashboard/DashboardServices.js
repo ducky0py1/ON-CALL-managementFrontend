@@ -1,10 +1,14 @@
+//DashboardServices.js
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext'; // 1. Import useAuth
 // Importer toutes les fonctions API nécessaires
-import { getServices, createService, deleteService, updateService, getSecretaries } from '../services/api';
-import Modal from '../components/Modal';
 
-function ServicesPage() {
-  // --- États ---
+import { getServices, createService, deleteService, updateService, getSecretaries } from '../../services/api';
+import Modal from '../Modal';
+
+function DashboardServices() {
+   const { isAdmin } = useAuth(); 
+  // --- stats ---
   const [services, setServices] = useState([]);
   const [secretaries, setSecretaries] = useState([]); // Pour la liste déroulante
   const [loading, setLoading] = useState(true);
@@ -81,7 +85,7 @@ function ServicesPage() {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleDeleteService = async (serviceId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce service ? Cette action est irréversible.")) {
       try {
@@ -113,7 +117,7 @@ function ServicesPage() {
           <div className="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
           <p className="text-red-700 font-medium">{error}</p>
         </div>
-        <button 
+        <button
           onClick={fetchServices}
           className="mt-3 text-sm text-red-600 hover:text-red-800 underline"
         >
@@ -136,22 +140,24 @@ function ServicesPage() {
             </h1>
             <p className="text-gray-600">Administration des services OCP - Office Chérifien des Phosphates</p>
           </div>
+           {isAdmin && (
           <button
             onClick={handleOpenCreateModal}
             className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200 shadow-lg flex items-center"
           >
             <div className="w-5 h-5 border-2 border-white rounded mr-2 flex items-center justify-center"><div className="w-2 h-2 bg-white rounded-sm"></div></div>
-            Ajouter un Service
+            + Ajouter un Service
           </button>
+        )}
         </div>
       </div>
-      
+
       <div className="bg-white shadow-xl rounded-xl overflow-hidden">
         <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
           <h2 className="text-white font-semibold text-lg">Liste des Services</h2>
           <p className="text-green-100 text-sm">Gestion centralisée des départements OCP</p>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-green-50">
@@ -199,14 +205,14 @@ function ServicesPage() {
           <div><label className="block text-gray-700 font-semibold mb-2">Nom du service</label><input type="text" value={currentService.nom} onChange={(e) => setCurrentService({ ...currentService, nom: e.target.value })} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700 leading-tight focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200" placeholder="ex: Direction des Opérations" required /></div>
           <div><label className="block text-gray-700 font-semibold mb-2">Code du service</label><input type="text" value={currentService.code_service} onChange={(e) => setCurrentService({ ...currentService, code_service: e.target.value })} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700 leading-tight focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 font-mono" placeholder="ex: DOM" required /></div>
           <div><label className="block text-gray-700 font-semibold mb-2">Description (Optionnel)</label><textarea value={currentService.description} onChange={(e) => setCurrentService({ ...currentService, description: e.target.value })} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700 leading-tight focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 resize-none" rows="3" placeholder="Description détaillée du service..."></textarea></div>
-          
+
           <div>
             <label className="block text-gray-700 font-semibold mb-2">Secrétaire Responsable</label>
             <select value={currentService.secretaire_responsable_id || ''} onChange={(e) => setCurrentService({ ...currentService, secretaire_responsable_id: e.target.value })} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-700 leading-tight focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200">
               <option value="">-- Aucune --</option>
               {secretaries.map(sec => (
-                <option 
-                  key={sec.id} 
+                <option
+                  key={sec.id}
                   value={sec.id}
                   disabled={!sec.is_available_for_assignment && sec.id !== currentService.secretaire_responsable_id}
                   className={!sec.is_available_for_assignment && sec.id !== currentService.secretaire_responsable_id ? 'text-gray-400 bg-gray-100' : ''}
@@ -229,5 +235,3 @@ function ServicesPage() {
     </div>
   );
 }
-
-export default ServicesPage;

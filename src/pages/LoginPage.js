@@ -1,10 +1,13 @@
 // src/pages/LoginPage.js - Updated navigation routes
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../components/styles/LoginPage.css';
-import { login } from '../services/api';
+import { login as apiLogin} from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
 
 // Import icons - using existing ones as placeholders
+import backgroundImage from '../components/images/zellige.jpg';
+import '../components/styles/LoginPage.css';
 import ocpLogoIcon from '../components/images/ocp_logo.png';
 import userIcon from '../components/images/ico/usrs.png';
 import lockIcon from '../components/images/ico/chk.png';
@@ -19,19 +22,17 @@ import arrowLeftIcon from '../components/images/ico/chk.png';
 import loadingIcon from '../components/images/ico/chk.png';
 
 // Background image
-const backgroundImage = "https://images.unsplash.com/photo-1718386046338-6259e822aa4f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBiYWNrZ3JvdW5kfGVufDF8fHx8MTc1ODU1OTQ2Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral";
 
-function LoginPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
-  
+  const { login, token } = useAuth();
   // Check if user is already logged in
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
     if (token) {
       // User is already logged in, redirect to dashboard
-      navigate('/app/dashboard');
+      navigate('/app', {replace: true});
     }
-  }, [navigate]);
+  }, [token, navigate]);
   
   // Form states
   const [formData, setFormData] = useState({
@@ -105,25 +106,28 @@ function LoginPage() {
 
     try {
       // Call your login API
-      const response = await login({
+      const response = await apiLogin({
         email: formData.email,
         password: formData.password
       });
       
       // Store the token and user data
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      // Store remember me preference
-      if (formData.rememberMe) {
-        localStorage.setItem('rememberLogin', 'true');
-      }
-      
+      // login(userIcon, access_token);
+      // setShowSuccess(true);
+      const {access_token, user} = response.data;
+      login(user, access_token);
       setShowSuccess(true);
+
+      // // Store remember me preference
+      // if (formData.rememberMe) {
+      //   localStorage.setItem('rememberLogin', 'true');
+      // }
+      
+      // setShowSuccess(true);
       
       // Redirect to dashboard after success - UPDATED ROUTE
       setTimeout(() => {
-        navigate('/app/dashboard');
+        navigate('/app', {replace: true});
       }, 1500);
       
     } catch (error) {
@@ -406,4 +410,3 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;

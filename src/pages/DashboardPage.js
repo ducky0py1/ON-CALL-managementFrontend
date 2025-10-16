@@ -1,89 +1,92 @@
 // Fichier: src/pages/DashboardPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Import all the child components that make up the dashboard
+import { getPeriodes, createPeriode, updatePeriode, deletePeriode, getServices, getAgents }  from '../services/api';
+// Import all the components that make up the dashboard
 import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
 import { DashboardMainContent } from '../components/dashboard/DashboardMainContent';
 import { OnCallModal } from '../components/dashboard/OnCallModal';
 import { DeleteConfirmDialog } from '../components/dashboard/DeleteConfirmationDialog';
 
-// Mock data organized by service, as you provided.
-// This data will be used to power the entire dashboard.
-const mockDataByService = {
-  "Service Production": [
-    { id: "prod-1", description: "Astreinte Production - Semaine 43", service: "Service Production", startDate: "2024-10-21", endDate: "2024-10-25", startTime: "06:00", endTime: "18:00", status: "active", priority: "critical", assignedAgents: ["Youssef Mahi", "Aicha Rahimi"], type: "maintenance" },
-    { id: "prod-2", description: "Maintenance Préventive", service: "Service Production", startDate: "2024-10-28", endDate: "2024-11-01", startTime: "08:00", endTime: "17:00", status: "pending", priority: "normal", assignedAgents: ["Mohamed Alami"], type: "maintenance" }
-  ],
-  "Service Électrique": [
-    { id: "elec-1", description: "Urgence Électrique", service: "Service Électrique", startDate: "2024-10-22", endDate: "2024-10-28", startTime: "00:00", endTime: "23:59", status: "active", priority: "critical", assignedAgents: ["Khalid Ouali"], type: "emergency" }
-  ],
-};
-const mockData = Object.values(mockDataByService).flat();
-
-// This is the main "smart" component for the entire authenticated application.
 export function DashboardPage() {
   const navigate = useNavigate();
-
   // --- State Management ---
-  const [periods, setPeriods] = useState(mockData);
-  const [currentView, setCurrentView] = useState("overview"); // Default view is 'overview'
+  // On initialise les états avec des tableaux VIDES. Ils seront remplis par l'API.
+   const [periods, setPeriods] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [currentView, setCurrentView] = useState("overview");
   const [selectedService, setSelectedService] = useState(null);
-  
-  // State for the Create/Edit modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState(null);
-  
-  // State for the Delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [periodToDelete, setPeriodToDelete] = useState(null);
-
-  // --- Data Fetching (to be connected to the API later) ---
-  // useEffect(() => {
-  //   getPeriodes().then(response => setPeriods(response.data));
-  // }, []);
-
-  // --- Handlers (The functions that control the application) ---
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/');
-  };
   
-  const handleCreatePeriod = () => {
-    setEditingPeriod(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditPeriod = (period) => {
-    setEditingPeriod(period);
-    setIsModalOpen(true);
-  };
-  
-  const handleDeletePeriod = (periodId) => {
-    setPeriodToDelete(periodId);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleSavePeriod = (formData) => {
-    if (editingPeriod) { // Editing existing period
-      setPeriods(periods.map(p => p.id === editingPeriod.id ? { ...p, ...formData } : p));
-      // You would call updatePeriode(editingPeriod.id, formData) here
-    } else { // Creating new period
-      const newPeriod = { id: Date.now().toString(), status: 'pending', ...formData };
-      setPeriods([newPeriod, ...periods]);
-      // You would call createPeriode(formData) here
+ // --- 2. DATA FETCHING avec useEffect ---
+  // Cette fonction s'exécute une seule fois, après le premier rendu du composant.
+   const fetchData = async () => {
+    try {
+      const [periodesRes, agentsRes, servicesRes] = await Promise.all([
+        getPeriodes(), getAgents(), getServices()
+      ]);
+      setPeriods(periodesRes.data.data || []);
+      setAgents(agentsRes.data.data || []);
+      setServices(servicesRes.data.data || []);
+    } catch (err) {
+      console.error("Failed to load dashboard data:", err);
+      setError("Impossible de charger les données. L'API est peut-être inaccessible.");
+      if (err.response && err.response.status === 401) handleLogout();
+    } finally {
+      setLoading(false);
     }
-    setIsModalOpen(false);
   };
 
-  const confirmDelete = () => {
-    setPeriods(periods.filter(p => p.id !== periodToDelete));
-    // You would call deletePeriode(periodToDelete) here
+  useEffect(() => {
+    fetchData();
+  }, []); //runs only once on initial mount
+  // --- Handlers (Fully functional and connected) ---
+  const handleLogout = () => { localStorage.clear(); navigate('/'); };
+  const handleCreatePeriod = () => { setEditingPeriod(null); setIsModalOpen(true); };
+  const handleEditPeriod = (period) => { setEditingPeriod(period); setIsModalOpen(true); };
+  const handleDeletePeriod = (periodId) => { setPeriodToDelete(periodId); setIsDeleteModalOpen(true); };
+
+  const handleSavePeriod = async (formData) => {
+    try {
+      if (editingPeriod) {
+        await updatePeriode(editingPeriod.id, formData);
+      } else {
+        await createPeriode(formData);
+      }
+      setIsModalOpen(false);
+      fetchData(); // Refresh all data from the server!
+    } catch (err) {
+      console.error(err);
+      //get the specific validation errors from the response
+      console.error("Erreur lors de la sauvegarde:", err);
+      const errorMsg = err.response?.data?.errors 
+        ? Object.values(err.response.data.errors).flat().join('\n')
+        : "Une erreur est survenue lors de la sauvegarde.";
+      alert("Erreur de validation:\n" + errorMsg);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (periodToDelete) {
+      try {
+        await deletePeriode(periodToDelete);
+        fetchData(); // Refresh all data from the server!
+      } catch (err) {
+        alert("Erreur : Impossible de supprimer la période.");
+        console.error(err);
+      }
+    }
     setIsDeleteModalOpen(false);
     setPeriodToDelete(null);
   };
   
-  // --- Derived Data (Calculations based on state) ---
+  // --- Derived Data ---
   const stats = {
     total: periods.length,
     active: periods.filter(p => p.status === 'active').length,
@@ -92,15 +95,22 @@ export function DashboardPage() {
     critical: periods.filter(p => p.priority === 'critical').length,
     agents: new Set(periods.flatMap(p => p.assignedAgents)).size
   };
-  
-  // Filter periods based on the selected service in the sidebar
-  const displayedPeriods = selectedService ? mockDataByService[selectedService] || [] : periods;
+   // On regroupe les périodes par service pour la sidebar
+  const periodsByService = periods.reduce((acc, period) => {
+    const serviceName = period.service || 'Non assigné';
+    if (!acc[serviceName]) acc[serviceName] = [];
+      acc[serviceName].push(period);
+    return acc;
+  }, {});
+
+  const displayedPeriods = selectedService ? periodsByService[selectedService] || [] : periods;
+
+  if (loading) return <div className="flex h-screen items-center justify-center">Chargement des données...</div>;
+  if (error) return <div className="flex h-screen items-center justify-center text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50/20">
       <div className="flex">
-        
-        {/* The Sidebar receives the current state and the functions to change it */}
         <DashboardSidebar 
           currentView={currentView}
           onViewChange={setCurrentView}
@@ -108,38 +118,39 @@ export function DashboardPage() {
           stats={stats}
           selectedService={selectedService}
           onServiceChange={setSelectedService}
-          periodsByService={mockDataByService}
+          periodsByService={periodsByService}
         />
-
-        {/* The Main Content area receives the data and functions it needs to display the current view */}
-        <div className="flex-1 ml-64">
+        <main className="flex-1 ml-64">
           <DashboardMainContent
             currentView={currentView}
-            periods={displayedPeriods} // Pass the correctly filtered periods
+            periods={displayedPeriods}
+            agents={agents}
+            services={services}
             stats={stats}
             onCreatePeriod={handleCreatePeriod}
             onEditPeriod={handleEditPeriod}
             onDeletePeriod={handleDeletePeriod}
-            // Pass other props for other views
-            periodsByService={mockDataByService}
+            periodsByService={periodsByService}
             selectedService={selectedService}
           />
-        </div>
+        </main>
       </div>
 
-      {/* Modals are rendered here at the top level so they can appear over everything */}
+      {/* Modals */}
       <OnCallModal
-        isOpen={isModalOpen}
+       isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         period={editingPeriod}
         onSave={handleSavePeriod}
+        services={services}
+        agents={agents}
       />
       <DeleteConfirmDialog
-        isOpen={isDeleteModalOpen}
+       isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Supprimer la période d'astreinte"
-        description="Cette action est irréversible et supprimera définitivement la période."
+        title="Supprimer la période"
+        description="Cette action est irréversible."
       />
     </div>
   );

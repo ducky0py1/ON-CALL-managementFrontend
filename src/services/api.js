@@ -32,32 +32,23 @@ export const login = (credentials) => {
 };
 
 // --- AJOUTER LA FONCTION POUR LES SERVICES ---
-export const getServices = () => {
-  return apiClient.get('/services');
-};
-export const getAgents = () => {
-  return apiClient.get('/agents'); // C'est l'endpoint que nous avons créé dans Laravel
-};
-export const createService = (serviceData) => {
-  return apiClient.post('/services', serviceData);
-};
-export const deleteService = (id) => {
-  return apiClient.delete(`/services/${id}`);
-};
-export const updateService = (id, serviceData) => {
-  return apiClient.put(`/services/${id}`, serviceData);
-};
-export const createAgent = (agentData) => {
-  return apiClient.post('/agents', agentData);
-};
+export const getServices = () => apiClient.get('/services');
+export const createService = (data) => apiClient.post('/services', data);
+export const updateService = (id, data) => apiClient.put(`/services/${id}`, data);
+export const deleteService = (id) => apiClient.delete(`/services/${id}`);
 
-export const updateAgent = (id, agentData) => {
-  return apiClient.put(`/agents/${id}`, agentData);
-};
+// Agents
+export const getAgents = () => apiClient.get('/agents');
+export const createAgent = (data) => apiClient.post('/agents', data);
+export const updateAgent = (id, data) => apiClient.put(`/agents/${id}`, data);
+export const deleteAgent = (id) => apiClient.delete(`/agents/${id}`);
 
-export const deleteAgent = (id) => {
-  return apiClient.delete(`/agents/${id}`);
-};
+// Périodes d'Astreinte (NOUVEAU)
+export const getPeriodes = () => apiClient.get('/periodes-astreinte');
+export const createPeriode = (data) => apiClient.post('/periodes-astreinte', data);
+export const updatePeriode = (id, data) => apiClient.put(`/periodes-astreinte/${id}`, data);
+export const deletePeriode = (id) => apiClient.delete(`/periodes-astreinte/${id}`);
+
 export const getSecretaries = () => {
   return apiClient.get('/users/secretaries');
 };

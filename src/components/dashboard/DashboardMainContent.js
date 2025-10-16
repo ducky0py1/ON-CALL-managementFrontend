@@ -5,7 +5,8 @@ import { motion } from 'motion/react';
 // We will create them in the next steps, so we use placeholders for now.
 import { DashboardOverview } from "./DashboardOverview";
 import { DashboardPeriods } from "./DashboardPeriods";
-import { DashboardAgents } from "./DashboardAgents";
+import  DashboardAgents from "./DashboardAgents";
+import { DashboardServices } from "./DashboardServices";
 import { DashboardReports } from "./DashboardReports";
 import { DashboardSettings } from "./DashboardSettings";
 import { DashboardPlanning } from "./DashboardPlanning";
@@ -37,6 +38,8 @@ export function DashboardMainContent({
       case "planning":
         return <DashboardPlanning {...{ periods, periodsByService, selectedService, stats, onCreatePeriod, onNavigateToSchedule }} />;
       case "agents":
+        // return <DashboardAgents {...props} />;
+
         return <DashboardAgents {...{ periods, periodsByService, selectedService, stats }} />;
       case "periods":
         return <DashboardPeriods {...{ periods, selectedPeriods, selectedService, onSelectPeriods, onEditPeriod, onDeletePeriod, onBulkDelete, onCreatePeriod }} />;
