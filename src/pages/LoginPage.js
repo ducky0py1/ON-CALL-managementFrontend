@@ -114,8 +114,8 @@ export default function LoginPage() {
       // Store the token and user data
       // login(userIcon, access_token);
       // setShowSuccess(true);
-      const {access_token, user} = response.data;
-      login(user, access_token);
+     const { access_token, user: loggedInUser } = response.data;
+      login(loggedInUser, access_token);
       setShowSuccess(true);
 
       // // Store remember me preference
@@ -126,17 +126,23 @@ export default function LoginPage() {
       // setShowSuccess(true);
       
       // Redirect to dashboard after success - UPDATED ROUTE
-      setTimeout(() => {
-        navigate('/app', {replace: true});
+     setTimeout(() => {
+        if (loggedInUser.role_type === 'admin') {
+          navigate('/app');
+        } else if (loggedInUser.role_type === 'secretaire') {
+          navigate('/secretary/dashboard');
+        } else {
+          // Fallback for other roles if they exist
+          navigate('/');
+        }
       }, 1500);
       
-    } catch (error) {
-      setError(error.response?.data?.message || 'Email ou mot de passe incorrect');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Email ou mot de passe incorrect');
     } finally {
       setIsLoading(false);
     }
   };
-
   // Handle back to home - UPDATED ROUTE
   const handleBackToHome = () => {
     navigate('/');

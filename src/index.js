@@ -6,11 +6,11 @@ import './index.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
 // --- Import ALL top-level Page components ---
 import HomePage from './pages/HomePage';
-// import { useAuth } from '../context/AuthContext';
+// import useAuth  from '../context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import PublicCalendarPage from './pages/PublicCalendarPage';
 import { DashboardPage } from './pages/DashboardPage'; // This is our main protected layout
-
+import { SecretaryDashboardPage } from './pages/SecretaryDashboardPage';
 // The ProtectedRoute component is perfect.
 // function ProtectedRoute({ children }) {
 //   const token = localStorage.getItem('authToken');
@@ -42,8 +42,16 @@ function AppRouter() {
             <ProtectedRoute>
               <DashboardPage />
             </ProtectedRoute>
-          }
-        />
+          }/>
+        
+
+        <Route
+         path="/secretary/dashboard"
+          element={
+          <ProtectedRoute>
+            <SecretaryDashboardPage />
+          </ProtectedRoute>
+          }/>
         
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

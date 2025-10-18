@@ -2,8 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { getAgents, getServices, createAgent, updateAgent, deleteAgent } from '../../services/api';
 import Modal from '../Modal';
+import { Users, UserCheck, UserX, Clock, Phone, Mail, Plus, Search, MoreVertical } from 'lucide-react';
+import { motion } from "framer-motion";
 
-export default function DashboardAgents(props){
+
+const getStatusInfo = (status) => {
+  // We adapt this to use the real status from your backend if needed
+  // For now, we'll assign a status based on availability for demonstration
+  if (status) return { label: 'Disponible', color: 'bg-green-100 text-green-700' };
+  return { label: 'Indisponible', color: 'bg-red-100 text-red-700' };
+};
+
+export default function DashboardAgents({selectedService }){
   const [agents, setAgents] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +22,7 @@ export default function DashboardAgents(props){
   const [isEditing, setIsEditing] = useState(false);
   const [currentAgent, setCurrentAgent] = useState({ nom: '', prenom: '', matricule: '', service_id: '', telephone_principal: '', poste: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = async () => {
     try {
@@ -75,10 +86,28 @@ export default function DashboardAgents(props){
       } catch (err) {
         alert("Erreur : Impossible de supprimer l'agent. Il est peut-être lié à un planning.");
         console.error(err);
+
       }
     }
   };
   
+  const filteredAgents = agents.filter(agent => {
+    const search = searchQuery.toLowerCase();
+    const matchesSearch = 
+      agent.nom.toLowerCase().includes(search) ||
+      agent.prenom.toLowerCase().includes(search) ||
+      agent.matricule.toLowerCase().includes(search) ||
+      agent.service?.nom.toLowerCase().includes(search);
+    
+    // We can add more filters here later if needed
+    return matchesSearch;
+  });
+   // --- Stats calculated from real data ---
+  const activeAgents = filteredAgents.filter(agent => agent.is_disponible_astreinte);
+  const unavailableAgents = filteredAgents.filter(agent => !agent.is_disponible_astreinte);
+
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -105,80 +134,86 @@ export default function DashboardAgents(props){
           Réessayer
         </button>
       </div>
+
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6 relative overflow-hidden">
-        <div className="absolute top-4 right-4 w-16 h-16 border-2 border-green-200 rounded-full opacity-20"></div>
-        <div className="absolute bottom-4 left-4 w-12 h-12 border-2 border-green-200 transform rotate-45 opacity-20"></div>
-        <div className="flex justify-between items-center relative z-10">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
-              <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-green-700 rounded-full mr-4"></div>
-              Gestion des Agents
-            </h1>
-            <p className="text-gray-600">Personnel OCP - Office Chérifien des Phosphates</p>
+     <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Agents</h1>
+          <p className="text-gray-600">{selectedService ? `Agents du ${selectedService}` : "Vue d'ensemble de tous les agents"}</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              placeholder="Rechercher un agent..."
+              className="pl-10 w-64 p-2 border rounded-lg"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200 shadow-lg flex items-center"
-          >
-            <div className="w-5 h-5 border-2 border-white rounded mr-2 flex items-center justify-center"><div className="w-2 h-2 bg-white rounded-sm"></div></div>
-            Ajouter un Agent
+          <button onClick={handleOpenCreateModal} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+            <Plus className="w-4 h-4 mr-2" />
+            Nouvel Agent
           </button>
         </div>
       </div>
-      
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
-          <h2 className="text-white font-semibold text-lg">Liste des Agents</h2>
-          <p className="text-green-100 text-sm">Personnel et collaborateurs OCP</p>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">Matricule</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">Nom Complet</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">Service</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">Téléphone</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {agents.map((agent, index) => (
-                <tr key={agent.id} className={`hover:bg-green-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                  <td className="px-6 py-4 whitespace-nowrap"><span className="bg-gray-100 text-gray-800 text-sm font-mono px-3 py-1 rounded-full border">{agent.matricule}</span></td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4"><span className="text-green-600 font-semibold text-sm">{agent.prenom.charAt(0)}{agent.nom.charAt(0)}</span></div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">{`${agent.prenom} ${agent.nom}`}</div>
-                        <div className="text-xs text-gray-500">Agent OCP</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {agent.service ? (<div className="flex items-center"><div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div><span className="text-sm text-gray-900">{agent.service.nom}</span></div>) : (<div className="flex items-center"><div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div><span className="text-gray-400 text-sm">Non assigné</span></div>)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900 font-mono">{agent.telephone_principal}</div></td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex space-x-3">
-                      <button onClick={() => handleOpenEditModal(agent)} className="text-green-600 hover:text-green-800 text-sm font-medium hover:underline transition-colors duration-150">Modifier</button>
-                      <button onClick={() => handleDeleteAgent(agent.id)} className="text-red-600 hover:text-red-800 text-sm font-medium hover:underline transition-colors duration-150">Supprimer</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {agents.length === 0 && (
-          <div className="text-center py-12"><div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><div className="w-8 h-8 bg-green-600 rounded-full"></div></div><h3 className="text-lg font-medium text-gray-900 mb-2">Aucun agent trouvé</h3><p className="text-gray-500">La liste des agents est vide.</p></div>
-        )}
+
+      {/* ===== Agent Stats from Figma (connected to real data) ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="p-4 bg-white rounded-lg shadow"><p className="text-sm font-medium">Total Agents</p><p className="text-2xl font-bold">{filteredAgents.length}</p></div>
+        <div className="p-4 bg-white rounded-lg shadow"><p className="text-sm font-medium">En Astreinte (demo)</p><p className="text-2xl font-bold text-green-600">0</p></div>
+        <div className="p-4 bg-white rounded-lg shadow"><p className="text-sm font-medium">Disponibles</p><p className="text-2xl font-bold text-blue-600">{activeAgents.length}</p></div>
+        <div className="p-4 bg-white rounded-lg shadow"><p className="text-sm font-medium">Indisponibles</p><p className="text-2xl font-bold text-red-600">{unavailableAgents.length}</p></div>
+      </div>
+
+      {/* ===== Agents Card Grid from Figma (connected to real data) ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredAgents.map((agent) => {
+          const statusInfo = getStatusInfo(agent.is_disponible_astreinte);
+          return (
+            <motion.div
+              key={agent.id}
+              whileHover={{ y: -5 }}
+              className="p-4 border bg-white rounded-lg hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                    {agent.prenom.charAt(0)}{agent.nom.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 truncate">{agent.prenom} {agent.nom}</h4>
+                    <p className="text-sm text-gray-500 truncate">{agent.poste || 'Poste non défini'}</p>
+                  </div>
+                </div>
+                {/* Actions Menu */}
+                <div className="relative opacity-0 group-hover:opacity-100">
+                  <button className="p-1 rounded-full hover:bg-gray-100"><MoreVertical className="w-4 h-4" /></button>
+                  {/* A real dropdown menu would go here */}
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-gray-600 mt-4">
+                <p className="font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-full inline-block">{agent.service?.nom || 'Non assigné'}</p>
+                <div className="flex items-center space-x-2 pt-2">
+                  <Phone className="w-3 h-3" />
+                  <span className="text-xs">{agent.telephone_principal}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-3 h-3" />
+                  <span className="text-xs truncate">{agent.email_professionnel || 'Email non fourni'}</span>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+                  <button onClick={() => handleOpenEditModal(agent)} className="text-xs font-semibold text-blue-600 hover:underline">Modifier</button>
+                  <button onClick={() => handleDeleteAgent(agent.id)} className="text-xs font-semibold text-red-600 hover:underline">Supprimer</button>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing ? 'Modifier l\'Agent' : 'Ajouter un Nouvel Agent'}>

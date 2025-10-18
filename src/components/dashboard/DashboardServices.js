@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext'; // 1. Import useAuth
 import { getServices, createService, deleteService, updateService, getSecretaries } from '../../services/api';
 import Modal from '../Modal';
 
-function DashboardServices() {
+export default function DashboardServices() {
    const { isAdmin } = useAuth(); 
   // --- stats ---
   const [services, setServices] = useState([]);
