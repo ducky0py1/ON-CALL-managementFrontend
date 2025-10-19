@@ -15,7 +15,8 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('authToken'));
 
   // Create a simple boolean to easily check if the user is an admin.
-  const isAdmin = user?.role_type === 'admin';
+  const isAdmin = user?.role === 'admin';
+const isSecretary = user?.role === 'secretaire';
 
   // The login function now also updates our global state
   const login = (userData, authToken) => {
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
-  const value = { user, token, login, logout, isAdmin };
+  const value = { user, token, login, logout, isAdmin, isSecretary };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

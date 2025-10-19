@@ -1,91 +1,88 @@
-// src/pages/LoginPage.js - Updated navigation routes
+// src/pages/LoginPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login as apiLogin} from '../services/api';
+import { login as apiLogin } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-
-
-// Import icons - using existing ones as placeholders
-import backgroundImage from '../components/images/zellige.jpg';
 import '../components/styles/LoginPage.css';
+import backgroundImage from '../components/images/zellige.jpg';
 import ocpLogoIcon from '../components/images/ocp_logo.png';
-import userIcon from '../components/images/ico/usrs.png';
-import lockIcon from '../components/images/ico/chk.png';
-import eyeIcon from '../components/images/ico/chk.png';
-import eyeOffIcon from '../components/images/ico/chk.png';
-import checkIcon from '../components/images/ico/chk.png';
-import alertIcon from '../components/images/ico/chk.png';
-import xIcon from '../components/images/ico/chk.png';
-import shieldIcon from '../components/images/ico/chk.png';
-import usersManagementIcon from '../components/images/ico/usrs.png';
-import arrowLeftIcon from '../components/images/ico/chk.png';
-import loadingIcon from '../components/images/ico/chk.png';
 
-// Background image
+// React icons from lucide-react
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  ShieldCheck,
+  Users,
+  ArrowLeft,
+  Loader2
+} from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, token } = useAuth();
-  // Check if user is already logged in
-  useEffect(() => {
-    if (token) {
-      // User is already logged in, redirect to dashboard
-      navigate('/app', {replace: true});
-    }
-  }, [token, navigate]);
-  
-  // Form states
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
-  
-  // UI states
+  const {login} = useAuth();
+
+
+  // States
+  const [formData, setFormData] = useState({ email: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  
-  // Validation states
   const [emailValid, setEmailValid] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
-  // Email validation
+  // Validate email
   useEffect(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setEmailValid(emailRegex.test(formData.email));
   }, [formData.email]);
 
-  // Password strength calculation
+  // Password strength
   useEffect(() => {
     let strength = 0;
     const password = formData.password;
-    
     if (password.length >= 8) strength += 25;
     if (/[A-Z]/.test(password)) strength += 25;
     if (/[0-9]/.test(password)) strength += 25;
     if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-    
     setPasswordStrength(strength);
   }, [formData.password]);
 
-  // Handle input changes
+  // useEffect(() => {
+  //   if (user && token) {
+  //     // We show the success animation
+  //     setShowSuccess(true);
+  //     // After a short delay, we navigate to the correct dashboard
+  //     const timer = setTimeout(() => {
+  //       if (user.role === 'admin') {
+  //         navigate('/app', { replace: true });
+  //       } else if (user.role === 'secretaire') {
+  //         navigate('/secretary/dashboard', { replace: true });
+  //       } else {
+  //         navigate('/', { replace: true }); // Fallback
+  //       }
+  //     }, 1500); // 1.5 seconds for the animation
+      
+  //     // Cleanup function to prevent issues if the component unmounts early
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [user, token, navigate]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Validation
     if (!formData.email || !formData.password) {
       setError('Veuillez remplir tous les champs');
       setIsLoading(false);
@@ -104,51 +101,33 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      // Call your login API
+     try {
       const response = await apiLogin({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
-      
-      // Store the token and user data
-      // login(userIcon, access_token);
-      // setShowSuccess(true);
-     const { access_token, user: loggedInUser } = response.data;
-      login(loggedInUser, access_token);
-      setShowSuccess(true);
 
-      // // Store remember me preference
-      // if (formData.rememberMe) {
-      //   localStorage.setItem('rememberLogin', 'true');
-      // }
+      // Call the global login function to update the state
+      login(response.data.user, response.data.access_token);
       
-      // setShowSuccess(true);
-      
-      // Redirect to dashboard after success - UPDATED ROUTE
-     setTimeout(() => {
-        if (loggedInUser.role_type === 'admin') {
-          navigate('/app');
-        } else if (loggedInUser.role_type === 'secretaire') {
-          navigate('/secretary/dashboard');
-        } else {
-          // Fallback for other roles if they exist
-          navigate('/');
-        }
-      }, 1500);
-      
+      // After a successful login, we decide where to go
+      if (response.data.user.role === 'admin') {
+        navigate('/app', { replace: true });
+      } else if (response.data.user.role === 'secretaire') {
+        navigate('/secretary/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true }); // Fallback to homepage
+      }
+
     } catch (err) {
       setError(err.response?.data?.message || 'Email ou mot de passe incorrect');
     } finally {
       setIsLoading(false);
     }
   };
-  // Handle back to home - UPDATED ROUTE
-  const handleBackToHome = () => {
-    navigate('/');
-  };
 
-  // Get password strength text and class
+  const handleBackToHome = () => navigate('/');
+
   const getPasswordStrengthInfo = () => {
     if (passwordStrength <= 25) return { text: 'Faible', class: 'weak' };
     if (passwordStrength <= 50) return { text: 'Moyen', class: 'medium' };
@@ -156,78 +135,57 @@ export default function LoginPage() {
     return { text: 'Très fort', class: 'very-strong' };
   };
 
-  // Generate background particles
-  const renderParticles = () => {
-    return Array.from({ length: 10 }, (_, i) => (
-      <div key={i} className="particle" />
-    ));
-  };
+  const renderParticles = () => Array.from({ length: 10 }, (_, i) => <div key={i} className="particle" />);
 
   const passwordInfo = getPasswordStrengthInfo();
 
   return (
     <div className="login-page">
-      
-      {/* Background Image */}
+      {/* Background */}
       <div className="login-background">
-        <img src={backgroundImage} alt="Modern industrial facility background" />
+        <img src={backgroundImage} alt="background" />
       </div>
-      
-      {/* Overlay Gradients */}
       <div className="login-overlay"></div>
       <div className="login-overlay-secondary"></div>
-      
-      {/* Animated Background Particles */}
-      <div className="background-particles">
-        {renderParticles()}
-      </div>
-      
-      {/* Geometric Pattern Overlay */}
-      <div className="geometric-pattern"></div>
+      <div className="background-particles">{renderParticles()}</div>
 
-      {/* Main Content */}
       <div className="login-content">
-        
-        {/* Left Side - Branding */}
+        {/* Left side - branding */}
         <div className="login-branding">
           <div>
             <div className="brand-header">
               <div className="brand-logo">
-                <img src={ocpLogoIcon} alt="OCP Logo" />
+                <ShieldCheck size={48} strokeWidth={1.5} />
               </div>
               <div className="brand-text">
                 <h1>OCP</h1>
                 <p>Gestion Astreinte</p>
               </div>
             </div>
-            
+
             <div className="brand-description">
               <h2>
                 Système de Gestion<br />
                 <span className="highlight">des Astreintes</span>
               </h2>
-              <p>
-                Plateforme sécurisée pour la gestion des équipes d'astreinte 
-                et la planification des interventions au sein du groupe OCP.
-              </p>
+              <p>Plateforme sécurisée pour la gestion des équipes d'astreinte et la planification des interventions.</p>
             </div>
           </div>
 
-          {/* Features List */}
           <div className="features-list">
             <div className="feature-item">
               <div className="feature-icon security">
-                <img src={shieldIcon} alt="Security" />
+                <ShieldCheck size={28} />
               </div>
               <div className="feature-content">
                 <h3>Sécurité Renforcée</h3>
                 <p>Authentification multi-facteurs</p>
               </div>
             </div>
-            
+
             <div className="feature-item">
               <div className="feature-icon management">
-                <img src={usersManagementIcon} alt="Management" />
+                <Users size={28} />
               </div>
               <div className="feature-content">
                 <h3>Gestion Centralisée</h3>
@@ -237,52 +195,44 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
+        {/* Right side - form */}
         <div className="login-form-container">
           <div className="login-card">
-            
-            {/* Success Overlay */}
             {showSuccess && (
               <div className="success-overlay active">
                 <div className="success-icon">
-                  <img src={checkIcon} alt="Success" />
+                  <CheckCircle size={64} color="green" />
                 </div>
               </div>
             )}
-            
-            {/* Card Header */}
+
             <div className="login-header">
               <div className="login-logo">
+                {/* <ShieldCheck size={40} /> */}
                 <img src={ocpLogoIcon} alt="OCP Logo" />
               </div>
               <h1 className="login-title">Connexion</h1>
-              <p className="login-subtitle">
-                Accédez à votre espace de gestion des astreintes
-              </p>
+              <p className="login-subtitle">Accédez à votre espace de gestion</p>
             </div>
 
-            {/* Form Content */}
             <div className="login-form-content">
               <form onSubmit={handleSubmit} className="form-container">
-                
-                {/* Email Field */}
+                {/* Email */}
                 <div className="form-group">
                   <label className="form-label">
-                    <span>Adresse email</span>
+                    Adresse email
                     {formData.email && (
-                      <div className={`validation-icon ${formData.email ? 'show' : ''} ${emailValid ? 'valid' : 'invalid'}`}>
-                        <img 
-                          src={emailValid ? checkIcon : xIcon} 
-                          alt={emailValid ? 'Valid' : 'Invalid'} 
-                        />
+                      <div className={`validation-icon ${emailValid ? 'valid' : 'invalid'}`}>
+                        {emailValid ? <CheckCircle size={18} color="green" /> : <XCircle size={18} color="red" />}
                       </div>
                     )}
                   </label>
                   <div className="input-wrapper">
+                    <User size={18} className="input-icon" />
                     <input
                       type="email"
                       name="email"
-                      className={`form-input ${formData.email ? (emailValid ? 'valid' : 'invalid') : ''}`}
+                      className={`form-input ${emailValid ? 'valid' : 'invalid'}`}
                       placeholder="nom.prenom@ocp.ma"
                       value={formData.email}
                       onChange={handleInputChange}
@@ -291,10 +241,11 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Password Field */}
+                {/* Password */}
                 <div className="form-group">
                   <label className="form-label">Mot de passe</label>
                   <div className="input-wrapper">
+                    <Lock size={18} className="input-icon" />
                     <div className="password-wrapper">
                       <input
                         type={showPassword ? 'text' : 'password'}
@@ -311,34 +262,25 @@ export default function LoginPage() {
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                       >
-                        <img 
-                          src={showPassword ? eyeOffIcon : eyeIcon} 
-                          alt={showPassword ? 'Hide' : 'Show'} 
-                        />
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                   </div>
-                  
-                  {/* Password Strength Indicator */}
+
                   {formData.password && (
-                    <div className={`password-strength ${formData.password ? 'show' : ''}`}>
+                    <div className={`password-strength show`}>
                       <div className="strength-header">
-                        <span className="strength-label">Force du mot de passe:</span>
-                        <span className={`strength-value ${passwordInfo.class}`}>
-                          {passwordInfo.text}
-                        </span>
+                        <span>Force du mot de passe:</span>
+                        <span className={`strength-value ${passwordInfo.class}`}>{passwordInfo.text}</span>
                       </div>
                       <div className="strength-bar">
-                        <div 
-                          className={`strength-progress ${passwordInfo.class}`}
-                          style={{ width: `${passwordStrength}%` }}
-                        />
+                        <div className={`strength-progress ${passwordInfo.class}`} style={{ width: `${passwordStrength}%` }} />
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Remember Me Checkbox */}
+                {/* Remember me */}
                 <div className="checkbox-group">
                   <input
                     type="checkbox"
@@ -348,58 +290,45 @@ export default function LoginPage() {
                     checked={formData.rememberMe}
                     onChange={handleInputChange}
                   />
-                  <label htmlFor="rememberMe" className="checkbox-label">
-                    Se souvenir de moi
-                  </label>
+                  <label htmlFor="rememberMe">Se souvenir de moi</label>
                 </div>
 
-                {/* Error Message */}
+                {/* Error */}
                 {error && (
                   <div className="error-message">
-                    <img src={alertIcon} alt="Error" className="error-icon" />
+                    <AlertCircle size={18} color="red" className="error-icon" />
                     {error}
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="submit-button"
-                  disabled={isLoading || !emailValid || !formData.password}
-                >
-                  <div className="button-shimmer"></div>
-                  <div className="button-content">
-                    {isLoading && <img src={loadingIcon} alt="Loading" className="loading-icon" />}
-                    <span>{isLoading ? 'Connexion...' : 'Se connecter'}</span>
-                  </div>
+                {/* Submit */}
+                <button type="submit" className="submit-button" disabled={isLoading || !emailValid || !formData.password}>
+                  {isLoading ? <Loader2 size={18} className="loading-icon animate-spin" /> : null}
+                  <span>{isLoading ? 'Connexion...' : 'Se connecter'}</span>
                 </button>
               </form>
 
-              {/* Footer Links */}
+              {/* Footer */}
               <div className="login-footer">
-                <div className="footer-links">
-                  <a href="#forgot" className="forgot-password">
-                    Mot de passe oublié ?
-                  </a>
-                  <div className="support-text">
-                    Besoin d'aide ? Contactez le{" "}
-                    <span className="support-link">support IT</span>
-                  </div>
+                <a href="#forgot" className="forgot-password">
+                  Mot de passe oublié ?
+                </a>
+                <div className="support-text">
+                  Besoin d'aide ? Contactez le <span className="support-link">support IT</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Back to Homepage */}
+          {/* Back button */}
           <div className="back-to-home">
             <button onClick={handleBackToHome} className="back-button">
-              <img src={arrowLeftIcon} alt="Back" className="back-icon" />
+              <ArrowLeft size={18} />
               <span>Retour à l'accueil</span>
             </button>
           </div>
         </div>
       </div>
-
       {/* Mobile Logo */}
       <div className="mobile-logo">
         <div className="mobile-brand">
@@ -415,4 +344,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
