@@ -8,7 +8,7 @@ import HomePage from './pages/HomePage';
 // import useAuth  from '../context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import PublicCalendarPage from './pages/PublicCalendarPage';
-import { DashboardPage } from './pages/DashboardPage'; // This is our main protected layout
+import {DashboardPage} from './pages/DashboardPage'; // This is our main protected layout
 import { SecretaryDashboardPage } from './pages/SecretaryDashboardPage';
 // The ProtectedRoute component is perfect.
 // function ProtectedRoute({ children }) {
@@ -53,7 +53,14 @@ function AppRouter() {
       <Routes>
         {/* --- Public Routes --- */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+         <Route 
+          path="/login" 
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          } 
+        />
         <Route path="/calendar" element={<PublicCalendarPage />} />
         {/* --- The ONE Protected Route --- */}
         {/* All URLs starting with "/app" will be protected and will render the DashboardPage */}

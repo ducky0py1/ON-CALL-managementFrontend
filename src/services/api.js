@@ -32,6 +32,29 @@ export const login = (credentials) => {
   return apiClient.post('/login', credentials);
 };
 
+export const getUsers = () => {
+  return apiClient.get('/users');
+};
+
+export const createUser = (userData) => {
+  return apiClient.post('/users', userData);
+};
+
+// export const updateUser = (id, userData) => {
+//   return apiClient.put(`/users/${id}`, userData);
+// };
+export const updateUser = (id, data) => apiClient.put(`/users/${id}`, data);
+
+
+export const deleteUser = (id) => {
+  return apiClient.delete(`/users/${id}`);
+};
+
+// This function is still useful for forms, so we keep it.
+export const getAvailableSecretaries = () => {
+  return apiClient.get('/users?role=secretaire&available=true');
+};
+
 // --- AJOUTER LA FONCTION POUR LES SERVICES ---
 export const getServices = () => apiClient.get('/services');
 export const createService = (data) => apiClient.post('/services', data);
@@ -44,11 +67,30 @@ export const createAgent = (data) => apiClient.post('/agents', data);
 export const updateAgent = (id, data) => apiClient.put(`/agents/${id}`, data);
 export const deleteAgent = (id) => apiClient.delete(`/agents/${id}`);
 
-// Périodes d'Astreinte (NOUVEAU)
+// Périodes d'Astreinte
 export const getPeriodes = () => apiClient.get('/periodes-astreinte');
 export const createPeriode = (data) => apiClient.post('/periodes-astreinte', data);
 export const updatePeriode = (id, data) => apiClient.put(`/periodes-astreinte/${id}`, data);
 export const deletePeriode = (id) => apiClient.delete(`/periodes-astreinte/${id}`);
+
+
+// --- Fonctions pour les Indisponibilités ---
+export const getIndisponibilites = (params = {}) => {
+  // We use the plural 'indisponibilites' to match your Laravel route
+  return apiClient.get('/indisponibilites-agents', { params });
+};
+
+export const createIndisponibilite = (data) => {
+  return apiClient.post('/indisponibilites-agents', data);
+};
+
+export const updateIndisponibilite = (id, data) => {
+  return apiClient.put(`/indisponibilites-agents/${id}`, data);
+};
+
+export const deleteIndisponibilite = (id) => {
+  return apiClient.delete(`/indisponibilites-agents/${id}`);
+};
 
 export const getSecretaries = () => {
   return apiClient.get('/users/secretaries');
@@ -63,5 +105,20 @@ export const getPublicPeriodes = () => {
 export const getCurrentWeekAstreintes = () => {
   return apiClient.get('/public/astreintes-semaine');
 };
+
+
+// --- Fonctions pour les Indisponibilités Secrétaires ---
+export const getIndisponibilitesSecretaires = () => {
+  return apiClient.get('/indisponibilites-secretaires'); // Assuming a route like this exists
+};
+
+export const createIndisponibiliteSecretaire = (data) => {
+  return apiClient.post('/indisponibilites-secretaires', data);
+};
+
+export const updateIndisponibiliteSecretaire = (id, data) => {
+  return apiClient.put(`/indisponibilites-secretaires/${id}`, data);
+};
+
 
 export default apiClient;

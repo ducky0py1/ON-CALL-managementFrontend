@@ -1,92 +1,83 @@
-// Fichier: src/components/agent/AgentUnavailability.js
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion"; 
-import {
-  Plus,
-  Search,
-  Filter,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Users,
-  Edit2,
-  UserX,
-  FileText,
-} from "lucide-react";
+// Fichier: src/components/secretary/SecretaryUnavailability.js
+import React, { useState, useEffect } from 'react';
+import { motion} from 'motion/react';
+import { Plus, Search, Filter, CheckCircle, XCircle, Clock, UserX, FileText, Users, Edit2 } from 'lucide-react';
 
-import {
-  getIndisponibilites,
-  createIndisponibilite,
-  updateIndisponibilite,
-  getAgents,
-} from "../../services/api";
+import { getIndisponibilitesSecretaires, createIndisponibiliteSecretaire, updateIndisponibiliteSecretaire, getSecretaries } from '../../services/api';
 
-import { UnavailabilityModal } from "./UnavailabilityModal";
-import { ReplacementModal } from "./ReplacementModal";
+// Import the modal components this page uses
+import { UnavailabilityModal } from './UnavailabilityModal';
+import { useAuth } from '../../context/AuthContext';
+import { ReplacementModal } from './ReplacementModal';
 
-export function AgentUnavailability() {
+export function SecretaryUnavailability() {
+    const { user } = useAuth();
   const [unavailabilities, setUnavailabilities] = useState([]);
-  const [agents, setAgents] = useState([]);
+  const [secretaries, setSecretaries] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  
+  // State for modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReplacementModalOpen, setIsReplacementModalOpen] = useState(false);
   const [selectedUnavailability, setSelectedUnavailability] = useState(null);
-
+  
+  // State for filters
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Data Fetching
-  const fetchData = async () => {
+  // Data fetch
+   const fetchData = async () => {
     try {
-      setLoading(true);
-      const [unavailRes, agentsRes] = await Promise.all([
-        getIndisponibilites(),
-        getAgents(),
-      ]);
-      setUnavailabilities(unavailRes.data.data || []);
-      setAgents(agentsRes.data.data || []);
+      // API call to get ONLY the current secretary's unavailabilities.
+      // We need to add a way to filter this in the backend later.
+      const unavailRes = await getIndisponibilitesSecretaires();
+      // For now, we filter on the frontend.
+      setUnavailabilities(unavailRes.data.data.filter(u => u.agent_id === user.id) || []);
     } catch (error) {
-      console.error("Error fetching data for AgentUnavailability:", error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+     if (user) fetchData();
     fetchData();
   }, []);
-
-  const handleCreateNew = () => {
-    setSelectedUnavailability(null);
-    setIsModalOpen(true);
+  
+  // Handlers for CRUD operations
+  const handleCreateNew = () => { 
+    setSelectedUnavailability(null); 
+    setIsModalOpen(true); 
   };
 
-  const handleEdit = (item) => {
-    setSelectedUnavailability(item);
-    setIsModalOpen(true);
+  const handleEdit = (item) => { 
+    setSelectedUnavailability(item); 
+    setIsModalOpen(true); 
   };
 
   const handleSave = async (formData) => {
     try {
-      const dataToSend = { ...formData, agent_id: parseInt(formData.agent_id) };
-      if (selectedUnavailability) {
-        await updateIndisponibilite(selectedUnavailability.id, dataToSend);
+      // const secretary = secretaries.find(s => s.id === parseInt(formData.agent_id));
+      const dataToSend = { ...formData, agent_id: user.id, agentName: `${user.prenom} ${user.nom}` };
+      
+     if (selectedUnavailability) {
+        await updateIndisponibiliteSecretaire(selectedUnavailability.id, dataToSend);
       } else {
-        await createIndisponibilite(dataToSend);
+        await createIndisponibiliteSecretaire(dataToSend);
       }
       setIsModalOpen(false);
       fetchData();
     } catch (error) {
       alert("Erreur lors de la sauvegarde.");
-      console.error(error.response?.data);
     }
   };
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await updateIndisponibilite(id, { statut: newStatus });
+      await updateIndisponibiliteSecretaire(id, { statut: newStatus });
       fetchData();
     } catch (error) {
       alert("Erreur lors du changement de statut.");
@@ -98,15 +89,11 @@ export function AgentUnavailability() {
     setIsReplacementModalOpen(true);
   };
 
-  const handleReplacementAssigned = async (
-    unavailabilityId,
-    replacementId,
-    replacementName
-  ) => {
+  const handleReplacementAssigned = async (unavailabilityId, replacementId, replacementName) => {
     try {
-      await updateIndisponibilite(unavailabilityId, {
-        replacement_id: replacementId,
-        replacementName,
+      await updateIndisponibiliteSecretaire(unavailabilityId, { 
+        replacement_id: replacementId, 
+        replacementName 
       });
       fetchData();
     } catch (error) {
@@ -115,24 +102,20 @@ export function AgentUnavailability() {
     setIsReplacementModalOpen(false);
   };
 
-  const filteredUnavailabilities = unavailabilities.filter((u) => {
-    const searchMatch =
-      u.agent?.nom?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.motif?.toLowerCase().includes(searchQuery.toLowerCase());
-    const statusMatch = statusFilter === "all" || u.statut === statusFilter;
-    const typeMatch = typeFilter === "all" || u.type_indisponibilite === typeFilter;
+  const filteredUnavailabilities = unavailabilities.filter(u => {
+    const searchMatch = u.agentName?.toLowerCase().includes(searchQuery.toLowerCase());
+    const statusMatch = statusFilter === 'all' || u.statut === statusFilter;
+    const typeMatch = typeFilter === 'all' || u.type_indisponibilite === typeFilter;
     return searchMatch && statusMatch && typeMatch;
   });
 
   const stats = {
     total: unavailabilities.length,
-    pending: unavailabilities.filter((u) => u.statut === "pending").length,
-    approved: unavailabilities.filter((u) => u.statut === "approved").length,
-    needsReplacement: unavailabilities.filter(
-      (u) => u.statut === "approved" && !u.replacement_id
-    ).length,
+    pending: unavailabilities.filter(u => u.statut === "pending").length,
+    approved: unavailabilities.filter(u => u.statut === "approved").length,
+    needsReplacement: unavailabilities.filter(u => u.statut === "approved" && !u.replacement_id).length
   };
-
+  
   const getStatusBadge = (statut) => {
     const badges = {
       approved: "px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border-0",
@@ -155,14 +138,10 @@ export function AgentUnavailability() {
       conge: { label: "Congé", color: "bg-blue-100 text-blue-800" },
       formation: { label: "Formation", color: "bg-green-100 text-green-800" },
       mission: { label: "Mission", color: "bg-purple-100 text-purple-800" },
-      autre: { label: "Autre", color: "bg-gray-100 text-gray-800" },
+      autre: { label: "Autre", color: "bg-gray-100 text-gray-800" }
     };
     const typeInfo = types[type] || types.autre;
-    return (
-      <span className={`px-3 py-1 text-xs font-medium rounded-full ${typeInfo.color} border-0`}>
-        {typeInfo.label}
-      </span>
-    );
+    return <span className={`px-3 py-1 text-xs font-medium rounded-full ${typeInfo.color} border-0`}>{typeInfo.label}</span>;
   };
 
   if (loading) {
@@ -183,10 +162,10 @@ export function AgentUnavailability() {
       >
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Indisponibilité des Agents
+            Indisponibilité des Secrétaires
           </h1>
           <p className="text-lg text-gray-600">
-            Gérer les absences et assigner les remplaçants
+            Gérer les absences des secrétaires et assigner les remplaçantes
           </p>
         </div>
         <button
@@ -230,7 +209,7 @@ export function AgentUnavailability() {
             bg: "bg-green-50" 
           },
           { 
-            title: "Sans remplaçant", 
+            title: "Sans remplaçante", 
             value: stats.needsReplacement, 
             icon: Users, 
             color: "from-red-500 to-red-600", 
@@ -276,7 +255,7 @@ export function AgentUnavailability() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher par nom, service ou motif..."
+                placeholder="Rechercher par nom ou motif..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B43F5] focus:border-transparent outline-none transition-all"
               />
             </div>
@@ -313,7 +292,7 @@ export function AgentUnavailability() {
             Liste des Indisponibilités ({filteredUnavailabilities.length})
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            Gérer et approuver les demandes d'indisponibilité
+            Gérer et approuver les demandes d'indisponibilité des secrétaires
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -321,7 +300,7 @@ export function AgentUnavailability() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Agent
+                  Secrétaire
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
@@ -336,7 +315,7 @@ export function AgentUnavailability() {
                   Document
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Remplaçant
+                  Remplaçante
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Statut
@@ -356,9 +335,7 @@ export function AgentUnavailability() {
                   className="hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {item.agent?.nom} {item.agent?.prenom}
-                    </div>
+                    <div className="text-sm font-medium text-gray-900">{item.agentName}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getTypeBadge(item.type_indisponibilite)}
@@ -411,14 +388,14 @@ export function AgentUnavailability() {
                       {item.statut === "pending" && (
                         <>
                           <button
-                            onClick={() => handleStatusChange(item.id, "approved")}
+                            onClick={() => handleStatusChange(item.id, 'approved')}
                             className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
                             title="Approuver"
                           >
                             <CheckCircle className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleStatusChange(item.id, "rejected")}
+                            onClick={() => handleStatusChange(item.id, 'rejected')}
                             className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                             title="Rejeter"
                           >
@@ -440,16 +417,26 @@ export function AgentUnavailability() {
             </tbody>
           </table>
         </div>
+       
       </div>
 
       {/* Modals */}
-      <UnavailabilityModal
+      {/* <UnavailabilityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         unavailability={selectedUnavailability}
         onSave={handleSave}
-        agents={agents}
-        isSecretary={false}
+        agents={secretaries}
+        isSecretary={true}
+      /> */}
+        <UnavailabilityModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        unavailability={selectedUnavailability}
+        onSave={handleSave}
+        agents={[]} // Not needed
+        isSecretary={true}
+        isSelf={true} // A new prop to hide the agent dropdown
       />
 
       {selectedUnavailability && (
@@ -457,9 +444,7 @@ export function AgentUnavailability() {
           isOpen={isReplacementModalOpen}
           onClose={() => setIsReplacementModalOpen(false)}
           unavailability={selectedUnavailability}
-          availableReplacements={agents.filter(
-            (a) => a.id !== selectedUnavailability.agent_id
-          )}
+          availableReplacements={secretaries.filter(s => s.id !== selectedUnavailability.agent_id)}
           onAssignReplacement={handleReplacementAssigned}
         />
       )}

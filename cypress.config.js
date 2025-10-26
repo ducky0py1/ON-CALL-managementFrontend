@@ -1,6 +1,7 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
+  projectId: 'oey57u',
   e2e: {
     baseUrl: 'http://localhost:3000', // React app URL
     video: false,

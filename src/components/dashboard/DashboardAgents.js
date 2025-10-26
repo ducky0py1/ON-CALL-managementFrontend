@@ -107,18 +107,68 @@ export default function DashboardAgents({selectedService }){
   const unavailableAgents = filteredAgents.filter(agent => !agent.is_disponible_astreinte);
 
 
+// === Animated Skeleton (shimmer effect) ===
+const SkeletonBlock = ({ className }) => (
+  <div className={`relative overflow-hidden bg-gray-200 rounded ${className}`}>
+    <motion.div
+      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent"
+      animate={{ x: ['-100%', '100%'] }}
+      transition={{
+        repeat: Infinity,
+        duration: 1.6,
+        ease: 'easeInOut',
+      }}
+      style={{ width: '50%' }}
+    />
+  </div>
+);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Chargement des agents...</p>
-          <p className="text-sm text-gray-500 mt-1">Office Chérifien des Phosphates</p>
+  return (
+    <div className="p-6 space-y-8">
+      {/* Header skeleton */}
+      <div className="flex justify-between items-center">
+        <div>
+          <SkeletonBlock className="h-6 w-48 mb-3" />
+          <SkeletonBlock className="h-4 w-32" />
         </div>
+        <SkeletonBlock className="h-10 w-40" />
       </div>
-    );
-  }
+
+      {/* Stats skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow p-6 space-y-3">
+            <SkeletonBlock className="h-4 w-24" />
+            <SkeletonBlock className="h-6 w-16" />
+          </div>
+        ))}
+      </div>
+
+      {/* Agents card skeleton grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="p-4 border bg-white rounded-lg space-y-4 shadow">
+            <div className="flex items-center space-x-3">
+              <SkeletonBlock className="h-10 w-10 rounded-full" />
+              <div className="space-y-2 flex-1">
+                <SkeletonBlock className="h-4 w-32" />
+                <SkeletonBlock className="h-3 w-24" />
+              </div>
+            </div>
+            <SkeletonBlock className="h-4 w-20 mt-2" />
+            <SkeletonBlock className="h-3 w-36" />
+            <SkeletonBlock className="h-3 w-24" />
+            <div className="flex justify-end space-x-2 pt-3 border-t">
+              <SkeletonBlock className="h-5 w-12 rounded" />
+              <SkeletonBlock className="h-5 w-16 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
   if (error) {
     return (

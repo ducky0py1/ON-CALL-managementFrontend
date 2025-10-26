@@ -15,3 +15,22 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+// We name it 'login'.
+Cypress.Commands.add('login', (email, password) => {
+  // This command will perform an API request to your backend's login endpoint.
+  cy.request({
+    method: 'POST',
+    url: 'http://localhost:8000/api/login', // Your backend login URL
+    body: { email, password },
+  })
+  .then((response) => {
+    // After the API call is successful, we get the token and user data from the response.
+    const authToken = response.body.access_token;
+    const user = response.body.user;
+
+    // We then save this information to the browser's localStorage.
+    // This makes the browser "think" that the user is logged in.
+    window.localStorage.setItem('authToken', authToken);
+    window.localStorage.setItem('user', JSON.stringify(user));
+  });
+});
