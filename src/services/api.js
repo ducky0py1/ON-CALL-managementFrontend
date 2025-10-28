@@ -68,6 +68,8 @@ export const updateAgent = (id, data) => apiClient.put(`/agents/${id}`, data);
 export const deleteAgent = (id) => apiClient.delete(`/agents/${id}`);
 
 // Périodes d'Astreinte
+export const getCurrentUser = () => apiClient.get('/me');
+export const getSecretaryService = () => apiClient.get('/secretary/service');
 export const getPeriodes = () => apiClient.get('/periodes-astreinte');
 export const createPeriode = (data) => apiClient.post('/periodes-astreinte', data);
 export const updatePeriode = (id, data) => apiClient.put(`/periodes-astreinte/${id}`, data);

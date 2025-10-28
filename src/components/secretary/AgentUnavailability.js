@@ -1,6 +1,8 @@
 // Fichier: src/components/agent/AgentUnavailability.js
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion"; 
+import { SkeletonDashboard } from "../styles/SkeletonLoader";
+
 import {
   Plus,
   Search,
@@ -165,13 +167,7 @@ export function AgentUnavailability() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Chargement des indisponibilités...</div>
-      </div>
-    );
-  }
+  if (loading) return <SkeletonDashboard />;
 
   return (
     <div className="space-y-6 p-6">

@@ -1,6 +1,8 @@
 // Fichier: src/components/secretary/SecretaryUnavailability.js
 import React, { useState, useEffect } from 'react';
 import { motion} from 'motion/react';
+import { SkeletonDashboard } from "../styles/SkeletonLoader";
+
 import { Plus, Search, Filter, CheckCircle, XCircle, Clock, UserX, FileText, Users, Edit2 } from 'lucide-react';
 
 import { getIndisponibilitesSecretaires, createIndisponibiliteSecretaire, updateIndisponibiliteSecretaire, getSecretaries } from '../../services/api';
@@ -144,13 +146,7 @@ export function SecretaryUnavailability() {
     return <span className={`px-3 py-1 text-xs font-medium rounded-full ${typeInfo.color} border-0`}>{typeInfo.label}</span>;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Chargement des indisponibilités...</div>
-      </div>
-    );
-  }
+   if (loading) return <SkeletonDashboard />;
 
   return (
     <div className="space-y-6 p-6">

@@ -92,7 +92,7 @@ export default function DashboardUsers() {
       password: currentUser.password || undefined, // keep undefined if empty
       role_type: currentUser.role_type,
       service_id:
-        currentUser.role_type === "admin" ? null : Number(currentUser.service_id) || null, // ✅ ensures number or null
+        currentUser.role_type === "admin" ? null : Number(currentUser.service_id) || null, 
     };
 
     try {

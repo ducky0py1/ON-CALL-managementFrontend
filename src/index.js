@@ -62,7 +62,6 @@ function AppRouter() {
           } 
         />
         <Route path="/calendar" element={<PublicCalendarPage />} />
-        {/* --- The ONE Protected Route --- */}
         {/* All URLs starting with "/app" will be protected and will render the DashboardPage */}
        <Route 
           path="/app" 

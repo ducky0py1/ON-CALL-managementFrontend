@@ -1,170 +1,280 @@
 // Fichier: src/components/dashboard/OnCallModal.js
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { X, Calendar, Clock, Users, AlertCircle, Settings, Repeat } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 
-// This is the main modal component. It receives props to control it.
-export function OnCallModal({ isOpen, onClose, period, onSave, services, agents }) {
-  // 'formData' holds all the values from the form inputs.
-  const [formData, setFormData] = useState({});
-  const [errors, setErrors] = useState({});
-  const [selectedAgents, setSelectedAgents] = useState([]);
+export function OnCallModal({
+  isOpen,
+  onClose,
+  period,
+  onSave,
+  agents = [],
+  services = [],
+  isSecretary = false,
+  secretaryServiceId = null, // ✅ NEW PROP ADDED HERE
+}) {
+  const [formData, setFormData] = useState({
+    description: "",
+    date_debut: "",
+    date_fin: "",
+    heure_debut: "",
+    heure_fin: "",
+    agent_id: "",
+    service_id: "",
+    statut: "active",
+    priorite: "normal",
+  });
 
-  // This effect runs when the modal opens to pre-fill the form.
+  // When the modal opens, populate or reset the form
   useEffect(() => {
-    if (isOpen) {
-      if (period) {
-        setFormData({
-          description: period.description || '',
-          service_id: period.service?.id || '', // Use service_id
-          type_periode: period.type_periode || 'hebdomadaire', // Use type_periode
-          date_debut: period.date_debut || '', // Use snake_case from API
-          date_fin: period.date_fin || '',
-          heure_debut: period.heure_debut || '08:00',
-          heure_fin: period.heure_fin || '17:00',
-        });
-      }else { // Creating a new period
-        setFormData({
-          description: '', service_id: '', type_periode: 'hebdomadaire',
-          date_debut: '', date_fin: '', heure_debut: '08:00', heure_fin: '17:00',
-        });
-        // setSelectedAgents([]);
-      }
-      setErrors({});
+    if (period) {
+      setFormData({
+        description: period.description || "",
+        date_debut: period.date_debut || "",
+        date_fin: period.date_fin || "",
+        heure_debut: period.heure_debut || "",
+        heure_fin: period.heure_fin || "",
+        agent_id: period.agent?.id || "",
+        service_id: period.service?.id || (isSecretary ? secretaryServiceId : ""),
+        statut: period.statut || "active",
+        priorite: period.priorite || "normal",
+      });
+    } else {
+      setFormData({
+        description: "",
+        date_debut: "",
+        date_fin: "",
+        heure_debut: "",
+        heure_fin: "",
+        agent_id: "",
+        service_id: isSecretary && secretaryServiceId ? secretaryServiceId : "",
+        statut: "active",
+        priorite: "normal",
+      });
     }
-  }, [period, isOpen]);
+  }, [period, services, isSecretary, secretaryServiceId]);
 
-
-  // Validation function
-  const validateForm = () => {
-     const newErrors = {};
-    if (!formData.description) newErrors.description = "La description est requise.";
-    if (!formData.service_id) newErrors.service_id = "Le service est requis."; // Use service_id
-    if (!formData.date_debut) newErrors.date_debut = "La date de début est requise.";
-    if (!formData.date_fin) newErrors.date_fin = "La date de fin est requise.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
-
-  const normalizeTime = (timeStr) => {
-    if (!timeStr) return "";
-    const [hours, minutes] = timeStr.split(":");
-    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`; // always 24h
+    e.preventDefault();
+    onSave(formData);
   };
 
-  const dataToSave = {
-    ...formData,
-    heure_debut: normalizeTime(formData.heure_debut),
-    heure_fin: normalizeTime(formData.heure_fin),
-  };
-
-  console.log("Submitting formatted data:", dataToSave);
-  onSave(dataToSave);
-};
-
-
-  const updateFormData = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
-  };
-  const handleAgentToggle = (agentName) => {
-    setSelectedAgents(prev => 
-      prev.includes(agentName)
-        ? prev.filter(a => a !== agentName)
-        : [...prev, agentName]
-    );
-  };
   if (!isOpen) return null;
 
+  // ✅ Filter agents according to secretary service (if applicable)
+  const filteredAgents = isSecretary && secretaryServiceId
+    ? agents.filter(
+        (agent) =>
+          agent.service?.id === secretaryServiceId ||
+          agent.services?.some((s) => s.id === secretaryServiceId)
+      )
+    : agents;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-xl font-semibold flex items-center gap-2"><Calendar className="w-5 h-5 text-blue-600" />{period ? "Modifier la Période" : "Nouvelle Période d'Astreinte"}</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200"><X className="w-5 h-5" /></button>
-        </div>
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 relative"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
-          {/* Section 1: Informations Générales */}
-          <div className="border p-4 rounded-lg bg-gray-50/50">
-            <h3 className="font-semibold mb-4 text-gray-800 flex items-center gap-2"><Settings className="w-5 h-5 text-blue-600" />Informations Générales</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label>Description *</label>
-                <input value={formData.description || ''} onChange={e => updateFormData('description', e.target.value)} className={`w-full p-2 border rounded ${errors.description ? 'border-red-500' : 'border-gray-300'}`} />
-                {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            {period ? "Modifier la Période" : "Nouvelle Période"}
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <input
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                placeholder="Ex: Astreinte semaine 45"
+                required
+              />
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date Début
+                </label>
+                <input
+                  type="date"
+                  name="date_debut"
+                  value={formData.date_debut}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                />
               </div>
               <div>
-                <label>Service *</label>
-                <select value={formData.service_id || ''} onChange={e => updateFormData('service_id', e.target.value)} className={`w-full p-2 border rounded ${errors.service ? 'border-red-500' : 'border-gray-300'}`}>
-                  <option value="" disabled>Sélectionner un service</option>
-                  {services.map(s => <option key={s.id} value={s.id}>{s.nom}</option>)}
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date Fin
+                </label>
+                <input
+                  type="date"
+                  name="date_fin"
+                  value={formData.date_fin}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            </div>
+
+            {/* Hours */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Heure Début
+                </label>
+                <input
+                  type="time"
+                  name="heure_debut"
+                  value={formData.heure_debut}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Heure Fin
+                </label>
+                <input
+                  type="time"
+                  name="heure_fin"
+                  value={formData.heure_fin}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            </div>
+
+            {/* Agent */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Agent Assigné
+              </label>
+              <select
+                name="agent_id"
+                value={formData.agent_id}
+                onChange={handleChange}
+                required
+                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="">-- Sélectionner un agent --</option>
+                {filteredAgents.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nom} {a.prenom}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Service */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Service
+              </label>
+              <select
+                name="service_id"
+                value={formData.service_id}
+                onChange={handleChange}
+                disabled={isSecretary}
+                required
+                className={`w-full border rounded-lg p-2 ${
+                  isSecretary
+                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                    : "focus:ring-2 focus:ring-blue-400"
+                }`}
+              >
+                <option value="">-- Sélectionner un service --</option>
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nom}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Statut & Priorité */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Statut
+                </label>
+                <select
+                  name="statut"
+                  value={formData.statut}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="planifie">Planifié</option>
                 </select>
-                {errors.service && <p className="text-sm text-red-600 mt-1">{errors.service}</p>}
               </div>
               <div>
-                <label>Type de Période</label>
-                <select value={formData.type_periode || 'hebdomadaire'} onChange={e => updateFormData('type_periode', e.target.value)} className="w-full p-2 border rounded border-gray-300">
-                  <option value="hebdomadaire">Hebdomadaire</option>
-                  <option value="weekend">Weekend</option>
-                  <option value="ferie">Férié</option>
-                  <option value="nuit">Nuit</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Priorité
+                </label>
+                <select
+                  name="priorite"
+                  value={formData.priorite}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                >
+                  <option value="normal">Normale</option>
+                  <option value="high">Élevée</option>
+                  <option value="critical">Critique</option>
                 </select>
               </div>
             </div>
-          </div>
 
-          {/* Section 2: Planification Temporelle */}
-          <div className="border p-4 rounded-lg bg-gray-50/50">
-            <h3 className="font-semibold mb-4 text-gray-800 flex items-center gap-2"><Clock className="w-5 h-5 text-green-600" />Planification Temporelle</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label>Date de Début *</label>
-                <input type="date" value={formData.date_debut || ''} onChange={e => updateFormData('date_debut', e.target.value)} className={`w-full p-2 border rounded ${errors.date_debut ? 'border-red-500' : 'border-gray-300'}`} />
-                {errors.date_debut && <p className="text-sm text-red-600 mt-1">{errors.date_debut}</p>}
-              </div>
-              <div>
-                <label>Date de Fin *</label>
-                <input type="date" value={formData.date_fin || ''} onChange={e => updateFormData("date_fin", e.target.value)} className={`w-full p-2 border rounded ${errors.date_fin ? 'border-red-500' : 'border-gray-300'}`} />
-                {errors.date_fin && <p className="text-sm text-red-600 mt-1">{errors.date_fin}</p>}
-              </div>
-              <div>
-                <label>Heure de Début</label>
-                <input type="time" value={formData.heure_debut || ''} onChange={e => updateFormData("heure_debut", e.target.value)} className="w-full p-2 border rounded border-gray-300" />
-              </div>
-              <div>
-                <label>Heure de Fin</label>
-                <input type="time" value={formData.heure_fin || ''} onChange={e => updateFormData("heure_fin", e.target.value)} className="w-full p-2 border rounded border-gray-300" />
-              </div>
+            <div className="flex justify-end mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="mr-3 px-4 py-2 rounded-lg border hover:bg-gray-100"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+              >
+                Enregistrer
+              </button>
             </div>
-          </div>
-
-          {/* Section 3: Configuration Avancée */}
-          <div className="border p-4 rounded-lg bg-gray-50/50">
-            <h3 className="font-semibold mb-4 text-gray-800 flex items-center gap-2"><Users className="w-5 h-5 text-orange-500" />Agents Assignés</h3>
-            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-              {agents.map(agent => (
-                <div key={agent.id} onClick={() => handleAgentToggle(agent.nom)} className={`p-3 rounded-lg border-2 cursor-pointer ${selectedAgents.includes(agent.nom) ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
-                  <span className="text-sm font-medium">{agent.nom} {agent.prenom}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-6 border-t">
-            <button type="button" onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300">Annuler</button>
-            <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
-              {period ? "Mettre à jour" : "Enregistrer"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </motion.div>
       </motion.div>
-    </div>
+    </AnimatePresence>
   );
 }

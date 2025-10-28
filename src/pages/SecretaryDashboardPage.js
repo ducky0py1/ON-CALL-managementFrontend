@@ -5,187 +5,191 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-import {
-  getAgents,
-  getPeriodes,
-  getIndisponibilites,
-  createIndisponibilite,
-  updateIndisponibilite
+// --- API Services ---
+import { 
+  getAgents, getPeriodes, getIndisponibilites, getIndisponibilitesSecretaires,
+  createPeriode, updatePeriode, deletePeriode, getServices
 } from '../services/api';
 
-
+// --- Components ---
 import { SecretarySidebar } from '../components/secretary/SecretarySidebar';
-
-import { DashboardPlanning } from '../components/dashboard/DashboardPlanning';
-import { SecretaryPeriods } from '../components/secretary/SecretaryPeriods';
 import SecretaryOverview from '../components/secretary/SecretaryOverview';
 import { AgentUnavailability } from '../components/secretary/AgentUnavailability';
 import { SecretaryUnavailability } from '../components/secretary/SecretaryUnavailability';
-import { UnavailabilityModal } from '../components/secretary/UnavailabilityModal';
-import { ReplacementModal } from '../components/secretary/ReplacementModal';
-
+import { SecretaryPeriods } from '../components/secretary/SecretaryPeriods';
+import { DashboardPlanning } from '../components/dashboard/DashboardPlanning';
+import { OnCallModal } from '../components/dashboard/OnCallModal';
+import { DeleteConfirmDialog } from '../components/dashboard/DeleteConfirmationDialog';
+import { EventDetailsModal } from '../components/dashboard/EventDetailsModal';
+import { SkeletonDashboard } from "../components/styles/SkeletonLoader";
 
 export function SecretaryDashboardPage() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
+  // --- State Management ---
   const [currentView, setCurrentView] = useState("overview");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [agents, setAgents] = useState([]);
-  const [periods, setPeriods] = useState([]);
-  const [unavailabilities, setUnavailabilities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [isUnavailabilityModalOpen, setIsUnavailabilityModalOpen] = useState(false);
-  const [isReplacementModalOpen, setIsReplacementModalOpen] = useState(false);
-  const [selectedUnavailability, setSelectedUnavailability] = useState(null);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [editingPeriod, setEditingPeriod] = useState(null);
+  const [agents, setAgents] = useState([]);
+  const [services, setServices] = useState([]);
+  const [periods, setPeriods] = useState([]);
+  const [agentUnavailabilities, setAgentUnavailabilities] = useState([]);
+  const [secretaryUnavailabilities, setSecretaryUnavailabilities] = useState([]);
 
+  // --- Period Modals ---
+  const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [periodToDelete, setPeriodToDelete] = useState(null);
+
+  // --- Event Details Modal ---
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // --- Fetch Data ---
+  // --- Fetch Data ---
+const fetchData = async () => {
+  try {
+    setLoading(true);
+    const [agentsRes, servicesRes, periodsRes, agentUnavailRes, secUnavailRes] = await Promise.all([
+      getAgents(),
+      getServices(),
+      getPeriodes(),
+      getIndisponibilites(),
+      getIndisponibilitesSecretaires()
+    ]);
+
+    setAgents(agentsRes.data.data || []);
+    setServices(servicesRes.data.data || []);
+    setPeriods(periodsRes.data.data || []);
+    setAgentUnavailabilities(agentUnavailRes.data.data || []);
+    setSecretaryUnavailabilities(secUnavailRes.data.data || []);
+  } catch (error) {
+    console.error(" Failed to load data:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchData();
+
+  //  Only start auto-refresh when no modal is open
+  let interval = null;
+  if (!isPeriodModalOpen) {
+    interval = setInterval(fetchData, 9000000);
+  }
+
+  return () => {
+    if (interval) clearInterval(interval);
+  };
+}, [isPeriodModalOpen]); //  Now dependent on modal state
+
+
+  // --- Handlers ---
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  // const handleCreatePeriod = () => {
-  //   setEditingPeriod(null);
-  //   setIsModalOpen(true);
-  // };
+  const handleCreatePeriod = () => {
+    setEditingPeriod(null);
+    setIsPeriodModalOpen(true);
+  };
 
-  //  Real-time updates every 30 seconds
-  const fetchData = async () => {
+  const handleEditPeriod = (period) => {
+    setEditingPeriod(period);
+    setIsPeriodModalOpen(true);
+  };
+
+  const handleDeletePeriod = (id) => {
+    setPeriodToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSavePeriod = async (formData) => {
     try {
-      const [agentsRes, periodsRes, unavailRes] = await Promise.all([
-        getAgents(),
-        getPeriodes(),
-        getIndisponibilites()
-      ]);
-
-      setAgents(agentsRes.data.data || []);
-      setPeriods(periodsRes.data.data || []);
-      setUnavailabilities(unavailRes.data.data || []);
-    } catch (error) {
-      console.error(" Failed to load secretary dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000); // auto-refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleCreateNew = () => {
-    setSelectedUnavailability(null);
-    setIsUnavailabilityModalOpen(true);
-  };
-
-  const handleEdit = (item) => {
-    setSelectedUnavailability(item);
-    setIsUnavailabilityModalOpen(true);
-  };
-
-  const handleSave = async (formData) => {
-    try {
-      if (selectedUnavailability) {
-        await updateIndisponibilite(selectedUnavailability.id, formData);
+      if (editingPeriod) {
+        await updatePeriode(editingPeriod.id, formData);
       } else {
-        await createIndisponibilite(formData);
+        await createPeriode(formData);
       }
-      setIsUnavailabilityModalOpen(false);
+      setIsPeriodModalOpen(false);
       fetchData();
     } catch (error) {
-      alert("Erreur lors de la sauvegarde de l'indisponibilité.");
+      alert("Erreur lors de la sauvegarde de la période.");
     }
   };
 
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      await updateIndisponibilite(id, { statut: newStatus });
-      fetchData();
-    } catch (error) {
-      alert("Erreur lors du changement de statut.");
+  const confirmDelete = async () => {
+    if (periodToDelete) {
+      try {
+        await deletePeriode(periodToDelete);
+        fetchData();
+      } catch (error) {
+        alert("Erreur lors de la suppression de la période.");
+      }
     }
+    setIsDeleteModalOpen(false);
   };
 
-  const handleAssignReplacement = (item) => {
-    setSelectedUnavailability(item);
-    setIsReplacementModalOpen(true);
-  };
-
-  const handleReplacementAssigned = async (unavailabilityId, replacementId, replacementName) => {
-    try {
-      await updateIndisponibilite(unavailabilityId, {
-        replacement_id: replacementId,
-        replacementName: replacementName
-      });
-      fetchData();
-    } catch (error) {
-      alert("Erreur lors de l'assignation du remplaçant.");
-    }
-    setIsReplacementModalOpen(false);
-  };
-
-  //  Stats
+  // --- Stats ---
   const stats = {
-    activePeriods: periods.filter(p => p.status === 'active').length,
-    pendingRequests: unavailabilities.filter(u => u.statut === 'pending').length,
-    agentsUnavailable: unavailabilities.filter(u => u.statut !== 'approved' && new Date(u.date_fin) >= new Date()).length,
-    secretariesUnavailable: 0,
-    unreadNotifications: 0,
-    agents: agents.length,
+    totalAgents: agents.length,
+    totalServices: services.length,
+    totalPeriods: periods.length,
+    totalUnavailabilities: agentUnavailabilities.length + secretaryUnavailabilities.length
   };
 
-  // Internal navigation
+  // --- Render Content ---
   const renderContent = () => {
     switch (currentView) {
-      case "agent-unavailability":
-      case "agents":
-        return (
-          <AgentUnavailability
-            unavailabilities={unavailabilities}
-            agents={agents}
-            onEdit={handleEdit}
-            onStatusChange={handleStatusChange}
-            onAssignReplacement={handleAssignReplacement}
-            onCreateNew={handleCreateNew}
-          />
-        );
-
-      case "my-unavailability":
-      // case "secretaries":
-        return <SecretaryUnavailability />;
-
       case "planning":
         return (
           <DashboardPlanning
             periods={periods}
-            stats={stats}
             onCreatePeriod={handleCreatePeriod}
+            onEventClick={(event) => setSelectedEvent(event)}
           />
         );
 
       case "periods":
-        // return <PeriodsPlaceholder />;
-        return <SecretaryPeriods />;
+        return (
+          <SecretaryPeriods
+            periods={periods}
+            services={services}
+            agents={agents}
+            onEditPeriod={handleEditPeriod}
+            onDeletePeriod={handleDeletePeriod}
+            onCreatePeriod={handleCreatePeriod}
+          />
+        );
+
+      case "agent-unavailability":
+        return <AgentUnavailability />;
+
+      case "my-unavailability":
+        return <SecretaryUnavailability />;
 
       case "overview":
       default:
         return (
           <SecretaryOverview
             stats={stats}
-            onNavigate={setCurrentView}
+            onViewChange={setCurrentView}
             secretaryService={user?.services?.[0]?.nom}
+            secretaryServiceId ={user?.services?.[0]?.id}
+
           />
         );
     }
   };
 
+  // --- UI ---
   return (
     <div className="min-h-screen bg-gray-50">
-      {/*  Mobile Header */}
+      {/* --- Mobile Header --- */}
       <div className="lg:hidden p-4 border-b bg-white fixed top-0 left-0 right-0 z-50">
         <div className="flex justify-between items-center">
           <h1 className="font-bold">Espace Secrétaire</h1>
@@ -195,7 +199,7 @@ export function SecretaryDashboardPage() {
         </div>
       </div>
 
-      {/* Sidebar */}
+      {/* --- Sidebar --- */}
       <div
         className={`fixed top-0 left-0 h-full z-40 transition-transform duration-300 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -209,7 +213,7 @@ export function SecretaryDashboardPage() {
         />
       </div>
 
-      {/* Main Content */}
+      {/* --- Main Content --- */}
       <main className="transition-all duration-300 lg:ml-64 pt-20 lg:pt-0">
         <div className="p-6 lg:p-8">
           <AnimatePresence mode="wait">
@@ -220,28 +224,40 @@ export function SecretaryDashboardPage() {
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.2 }}
             >
-              {loading ? <p>Chargement des données...</p> : renderContent()}
+              {loading ? <SkeletonDashboard /> : renderContent()}
             </motion.div>
           </AnimatePresence>
         </div>
       </main>
 
-      {/* Modals */}
-      <UnavailabilityModal
-        isOpen={isUnavailabilityModalOpen}
-        onClose={() => setIsUnavailabilityModalOpen(false)}
-        unavailability={selectedUnavailability}
-        onSave={handleSave}
+      {/* --- Modals --- */}
+      <OnCallModal
+        isOpen={isPeriodModalOpen}
+        onClose={() => setIsPeriodModalOpen(false)}
+        period={editingPeriod}
+        onSave={handleSavePeriod}
+        services={services}
         agents={agents}
+        isSecretary={true}
+         secretaryServiceId={user?.service_id}
+        //  secretaryServiceId={user.service_id}
+        // secretaryServiceId={user?.services?.[0]?.id}
+
       />
 
-      {selectedUnavailability && (
-        <ReplacementModal
-          isOpen={isReplacementModalOpen}
-          onClose={() => setIsReplacementModalOpen(false)}
-          unavailability={selectedUnavailability}
-          availableReplacements={agents.filter(a => a.id !== selectedUnavailability.agent_id)}
-          onAssignReplacement={handleReplacementAssigned}
+      <DeleteConfirmDialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Supprimer la Période"
+        description="Êtes-vous sûr de vouloir supprimer cette période ?"
+      />
+
+      {/* Event Details Modal (like public calendar) */}
+      {selectedEvent && (
+        <EventDetailsModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
         />
       )}
     </div>
