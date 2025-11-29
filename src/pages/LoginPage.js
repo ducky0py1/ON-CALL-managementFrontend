@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { login as apiLogin } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import '../components/styles/LoginPage.css';
-import backgroundImage from '../components/images/zellige.jpg';
+import backgroundImage from '../components/images/zellige .jpg';
 import ocpLogoIcon from '../components/images/ocp_logo.png';
 
 // React icons from lucide-react
@@ -155,7 +155,9 @@ export default function LoginPage() {
           <div>
             <div className="brand-header">
               <div className="brand-logo">
-                <ShieldCheck size={48} strokeWidth={1.5} />
+                {/* <ocpLogoIcon /> */}
+                <img src={ocpLogoIcon} alt="OCP Logo" />
+
               </div>
               <div className="brand-text">
                 <h1>OCP</h1>

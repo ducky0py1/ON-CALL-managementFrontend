@@ -1,5 +1,5 @@
-// Fichier: src/components/dashboard/OnCallModal.js
-import React, { useEffect, useState } from "react";
+// Fichier : src/components/dashboard/OnCallModal.js
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -11,69 +11,89 @@ export function OnCallModal({
   agents = [],
   services = [],
   isSecretary = false,
-  secretaryServiceId = null, // ✅ NEW PROP ADDED HERE
+  secretaryServiceId = null,
 }) {
+  // --- Form state: contains all fields used for creation/edit ---
   const [formData, setFormData] = useState({
     description: "",
     date_debut: "",
     date_fin: "",
-    heure_debut: "",
-    heure_fin: "",
+    heure_debut: "08:00",
+    heure_fin: "17:00",
     agent_id: "",
     service_id: "",
-    statut: "active",
+    statut: "planifie",
     priorite: "normal",
   });
 
-  // When the modal opens, populate or reset the form
-  useEffect(() => {
-    if (period) {
-      setFormData({
-        description: period.description || "",
-        date_debut: period.date_debut || "",
-        date_fin: period.date_fin || "",
-        heure_debut: period.heure_debut || "",
-        heure_fin: period.heure_fin || "",
-        agent_id: period.agent?.id || "",
-        service_id: period.service?.id || (isSecretary ? secretaryServiceId : ""),
-        statut: period.statut || "active",
-        priorite: period.priorite || "normal",
-      });
-    } else {
-      setFormData({
-        description: "",
-        date_debut: "",
-        date_fin: "",
-        heure_debut: "",
-        heure_fin: "",
-        agent_id: "",
-        service_id: isSecretary && secretaryServiceId ? secretaryServiceId : "",
-        statut: "active",
-        priorite: "normal",
-      });
-    }
-  }, [period, services, isSecretary, secretaryServiceId]);
+  // --- Error and agent selection states (for extensibility) ---
+  const [errors, setErrors] = useState({});
+  const [selectedAgents, setSelectedAgents] = useState([]); // in case of multi-agent logic later
 
+  // --- Initialize or reset form when modal opens ---
+  useEffect(() => {
+    if (isOpen) {
+      if (period) {
+        // Editing an existing period
+        setFormData({
+          description: period.description || "",
+          date_debut: period.date_debut || "",
+          date_fin: period.date_fin || "",
+          heure_debut: period.heure_debut || "08:00",
+          heure_fin: period.heure_fin || "17:00",
+          agent_id: period.agent?.id || "",
+          service_id:
+            period.service?.id ||
+            (isSecretary ? secretaryServiceId : ""),
+          statut: period.statut || "planifie",
+          priorite: period.priorite || "normal",
+        });
+        setSelectedAgents(period.assignedAgents?.map((a) => a.id) || []);
+      } else {
+        // Creating a new period
+        setFormData({
+          description: "",
+          date_debut: "",
+          date_fin: "",
+          heure_debut: "08:00",
+          heure_fin: "17:00",
+          agent_id: "",
+          service_id:
+            isSecretary && secretaryServiceId ? secretaryServiceId : "",
+          statut: "planifie",
+          priorite: "normal",
+        });
+        setSelectedAgents([]);
+      }
+      setErrors({});
+    }
+  }, [period, isOpen, isSecretary, secretaryServiceId]);
+
+  // --- Filter agents dynamically based on selected service ---
+  const agentsForSelectedService = useMemo(() => {
+    if (!formData.service_id || !agents) return [];
+    // Keep only agents whose service matches the selected one
+    return agents.filter(
+      (agent) =>
+        agent.service?.id === parseInt(formData.service_id) ||
+        agent.services?.some((s) => s.id === parseInt(formData.service_id))
+    );
+  }, [formData.service_id, agents]);
+
+  // --- Handle form field changes ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // --- Handle form submission ---
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    // Add selected agents if needed and send to parent (DashboardPage)
+    onSave({ ...formData, assigned_agents: selectedAgents });
   };
 
   if (!isOpen) return null;
-
-  // ✅ Filter agents according to secretary service (if applicable)
-  const filteredAgents = isSecretary && secretaryServiceId
-    ? agents.filter(
-        (agent) =>
-          agent.service?.id === secretaryServiceId ||
-          agent.services?.some((s) => s.id === secretaryServiceId)
-      )
-    : agents;
 
   return (
     <AnimatePresence>
@@ -83,12 +103,14 @@ export function OnCallModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
+        {/* Modal content */}
         <motion.div
           className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 relative"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
         >
+          {/* Close button (top right) */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -96,10 +118,12 @@ export function OnCallModal({
             <X className="w-5 h-5" />
           </button>
 
+          {/* Title */}
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">
             {period ? "Modifier la Période" : "Nouvelle Période"}
           </h2>
 
+          {/* --- FORM SECTION --- */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Description */}
             <div>
@@ -189,7 +213,7 @@ export function OnCallModal({
                 className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
               >
                 <option value="">-- Sélectionner un agent --</option>
-                {filteredAgents.map((a) => (
+                {agentsForSelectedService.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.nom} {a.prenom}
                   </option>
@@ -235,9 +259,9 @@ export function OnCallModal({
                   onChange={handleChange}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
                 >
+                  <option value="planifie">Planifié</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                  <option value="planifie">Planifié</option>
                 </select>
               </div>
               <div>
@@ -257,6 +281,7 @@ export function OnCallModal({
               </div>
             </div>
 
+            {/* Form Actions */}
             <div className="flex justify-end mt-6">
               <button
                 type="button"

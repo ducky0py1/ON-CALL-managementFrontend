@@ -10,18 +10,17 @@ import bellIcon from './images/ico/bel.png';
 import chartIcon from './images/ico/sta.png';
 
 // Import platform showcase images
-import dashboardImage from './images/dash.jpg';
+import dashboardImage from './images/dash.png';
 import mobileAppImage from './images/mob.jpg';
 import analyticsImage from './images/sta.jpg';
 
-// Icon components (you can replace with actual imported icons)
-const Shield = () => <span>🛡️</span>;
-const Smartphone = () => <span>📱</span>;
-const Database = () => <span>💾</span>;
-const Zap = () => <span>⚡</span>;
-const Settings = () => <span>⚙️</span>;
-const Clock = () => <span>🕐</span>;
-const Users = () => <span>👥</span>;
+const Shield = () => <span></span>;
+const Smartphone = () => <span></span>;
+const Database = () => <span></span>;
+const Zap = () => <span></span>;
+const Settings = () => <span></span>;
+const Clock = () => <span></span>;
+const Users = () => <span></span>;
 
 function SolutionSection() {
   const [visibleElements, setVisibleElements] = useState({});
