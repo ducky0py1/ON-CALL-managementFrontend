@@ -1,70 +1,135 @@
-# Getting Started with Create React App
+Gestion d'Astreinte – Frontend Application
+Interface utilisateur développée avec React pour la gestion des plannings d'astreinte.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is the frontend for the Gestion d'Astreinte application. It provides a modern, responsive, and user-friendly interface for administrators and secretaries to interact with the
+ Laravel API Backend
+.
 
-## Available Scripts
+ Features
 
-In the project directory, you can run:
+Authentication Flow: Secure login for administrators and secretaries.
 
-### `npm start`
+Token Management: Automatic handling of authentication tokens for secure API communication.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Protected Routes: Dashboard routes are restricted to authenticated users.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Responsive Layout: Sidebar-based layout adapted to all screen sizes.
 
-### `npm test`
+Full CRUD Interfaces: User-friendly modals and tables for managing:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Services (with secretary assignment)
 
-### `npm run build`
+Agents
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+(Soon: Periods, Plannings, etc.)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Dynamic Data Loading: Components fetch and display API data with loading/error states.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Themed Design: OCP-inspired styles using Tailwind CSS.
 
-### `npm run eject`
+ Tech Stack
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Framework: React 18+
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Build Tool: Create React App (CRA)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Language: JavaScript (ES6+) with JSX
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Routing: React Router DOM
 
-## Learn More
+API Communication: Axios
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Styling: Tailwind CSS
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+ Getting Started
 
-### Code Splitting
+Follow these steps to install and run the project locally.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+ Prerequisites
 
-### Analyzing the Bundle Size
+Make sure the following are installed:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Node.js (recommended: v20.x or higher)
 
-### Making a Progressive Web App
+npm (bundled with Node.js)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Git
 
-### Advanced Configuration
+Important:
+This frontend requires the backend API to be running.
+ Backend Repository
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Start the backend first before launching the frontend.
 
-### Deployment
+ Installation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Clone the repository
 
-### `npm run build` fails to minify
+git clone https://github.com/YOUR_USERNAME/YOUR_FRONTEND_REPO.git
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+Navigate into the project
+
+cd gestion-astreinte-frontend
+
+
+Install dependencies
+
+npm install
+
+Configuration
+
+The frontend communicates with the backend API located at:
+
+http://127.0.0.1:8000
+
+
+If you need to change the backend URL, edit:
+
+src/services/api.js
+
+Modify the baseURL:
+
+const apiClient = axios.create({
+  baseURL: 'http://YOUR_API_URL/api',
+  // ...
+});
+
+ Running the Application
+1. Start the Backend Server
+
+In gestion-astreinte-backend:
+
+php artisan serve
+
+2. Start the Frontend Development Server
+
+In gestion-astreinte-frontend:
+
+npm start
+
+
+This will automatically open the application in your browser at:
+
+http://localhost:3000
+
+
+The page reloads automatically when code changes are made.
+
+ Project Structure
+
+Main source files are located in the src/ directory:
+
+src/
+│
+├── components/# Reusable UI components (e.g., Modal.js)
+
+├── pages/# Page components (LoginPage.js, ServicesPage.js, etc.)
+
+├── services/# API communication modules (api.js with Axios config)
+
+├── App.js# Main layout (sidebar + routing)
+
+├── index.js# App entry point with router setup
+
+└── index.css# Tailwind CSS imports and base styles
